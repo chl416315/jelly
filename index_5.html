@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>젤리 메이커 · Material Studies No. 059</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,300;1,6..72,400&family=JetBrains+Mono:wght@400;500&family=Noto+Serif+KR:wght@300;400&family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#E2DFDA;--ink:#1c1d20;--mute:#6d6b66;--line:rgba(20,20,20,.14);--panel:rgba(240,237,232,.78);--accent:#1c1d20;--accent-ink:#f4f1ec;--serif:'Newsreader','Noto Serif KR',Georgia,serif;--mono:'JetBrains Mono','Noto Sans KR',ui-monospace,Menlo,monospace}
+body.dark{--ink:#e8e6e1;--mute:#8e8c88;--line:rgba(255,255,255,.14);--panel:rgba(18,19,24,.7);--accent:#e8e6e1;--accent-ink:#101114}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--mono);font-size:11px;line-height:1.5;overflow:hidden;-webkit-font-smoothing:antialiased;transition:color .9s}
+#app{position:fixed;inset:0}
+#stage{position:absolute;inset:0;touch-action:none}
+#stage canvas{display:block;width:100%;height:100%;cursor:grab;outline:none}
+.mast{position:absolute;left:28px;top:24px;max-width:340px;pointer-events:none}
+.kicker{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+h1{font-family:var(--serif);font-style:italic;font-weight:300;font-size:clamp(46px,6.2vw,84px);line-height:.92;margin:10px 0 12px;letter-spacing:-.02em}
+h1 .jl{display:inline-block;margin-left:.6em}
+.mast p{font-family:var(--serif);font-size:13px;line-height:1.35;color:var(--mute);margin:0;max-width:230px}
+.pill{position:absolute;right:24px;top:20px;display:flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:99px;padding:4px 11px;font-size:9px;letter-spacing:.12em;background:var(--panel);backdrop-filter:blur(8px);z-index:3}
+.pill i{width:6px;height:6px;border-radius:50%;background:#37b26c;display:block}
+.pill i.work{background:#e59a2f;animation:pulse .9s infinite alternate}
+@keyframes pulse{to{opacity:.25}}
+.panel{position:absolute;right:24px;top:58px;width:316px;max-height:calc(100% - 82px);overflow:auto;background:var(--panel);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:14px;padding:14px 16px 16px;z-index:2;scrollbar-width:thin}
+.sec{padding:11px 0;border-top:1px solid var(--line)}
+.sec:first-child{border-top:0;padding-top:0}
+.head{display:flex;justify-content:space-between;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin-bottom:9px}
+.head b{font-family:var(--serif);font-style:italic;font-weight:400;letter-spacing:0;text-transform:none;font-size:11px}
+#drop{display:flex;align-items:center;justify-content:center;gap:10px;height:84px;border:1px dashed var(--line);border-radius:10px;cursor:pointer;color:var(--mute);text-align:center;position:relative;overflow:hidden;transition:background .2s,border-color .2s}
+#drop:hover,#drop.over{background:rgba(120,120,120,.1);border-color:var(--ink)}
+#drop .hint{font-size:10px;line-height:1.4}
+#thumb{display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#drop.has #thumb{display:block}
+#drop.has .hint{display:none}
+#clearImg{display:none;position:absolute;right:6px;top:6px;width:20px;height:20px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;font:12px/20px var(--mono);cursor:pointer;padding:0}
+#drop.has #clearImg{display:block}
+textarea{width:100%;margin-top:9px;resize:vertical;min-height:54px;border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.35);color:var(--ink);font:11px/1.45 var(--mono);padding:8px 9px;outline:none}
+body.dark textarea{background:rgba(255,255,255,.05)}
+textarea:focus{border-color:var(--ink)}
+.row{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap}
+button{font:10px var(--mono);letter-spacing:.02em;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:7px;padding:7px 11px;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+button:hover:not(:disabled){border-color:var(--ink)}
+button.primary,button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:disabled{opacity:.5;cursor:default}
+.make{flex:1;padding:9px 11px;font-size:11px}
+#msg{margin-top:8px;font-size:10px;color:var(--mute);min-height:14px;line-height:1.4}
+#msg.bad{color:#c2442f}
+.sws{display:flex;gap:8px}
+.sw{width:52px;border:1px solid var(--line);background:none;border-radius:7px;padding:4px 4px 3px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:8px;color:var(--mute)}
+.sw span{display:block;width:100%;height:16px;border-radius:4px;background:linear-gradient(180deg,var(--c) 0 55%,color-mix(in srgb,var(--c) 55%,#ff5a3c) 55% 100%)}
+.sw.on{border-color:var(--ink);color:var(--ink);background:transparent}
+label.sl{display:block;margin-bottom:8px}
+.sl .t{display:flex;justify-content:space-between;font-size:9px;letter-spacing:.12em;text-transform:uppercase}
+.sl .t em{font-style:normal;color:var(--mute)}
+.sl .e{display:flex;justify-content:space-between;font-family:var(--serif);font-style:italic;font-size:10px;color:var(--mute);margin-top:-2px}
+input[type=range]{width:100%;accent-color:var(--ink);margin:5px 0}
+.chk{display:inline-flex;align-items:center;gap:6px;margin-right:12px;font-size:10px;cursor:pointer}
+.chk input{accent-color:var(--ink)}
+details{border-top:1px solid var(--line);padding:10px 0 0}
+summary{cursor:pointer;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.notes{font-family:var(--serif);font-size:12px;line-height:1.4;color:var(--mute);margin:8px 0 0}
+.notes b{color:var(--ink);font-weight:400;font-style:italic}
+pre{margin:8px 0 0;max-height:150px;overflow:auto;font:9px/1.35 var(--mono);color:var(--mute);background:rgba(120,120,120,.08);border-radius:6px;padding:7px;white-space:pre-wrap;word-break:break-all}
+.foot{position:absolute;left:28px;bottom:22px;max-width:min(520px,calc(100% - 380px));pointer-events:none}
+.handle{font-size:9px;line-height:1.5;color:var(--mute);max-width:330px;margin:0 0 12px}
+.handle i{font-family:var(--serif);font-size:11px;color:var(--ink)}
+.reads{display:flex;gap:0;border-top:1px solid var(--line)}
+.reads div{padding:7px 18px 0 0;margin-right:18px;border-right:1px solid var(--line)}
+.reads div:last-child{border:0}
+.reads small{display:block;font-size:8px;letter-spacing:.14em;color:var(--mute)}
+.reads b{font-weight:500;font-size:15px}
+.reads u{text-decoration:none;color:var(--mute);font-size:9px;margin-left:2px}
+body.busy #stage canvas{filter:saturate(.8) blur(.6px);transition:filter .4s}
+#fallback{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);text-align:center;padding:30px;font-family:var(--serif);font-style:italic;font-size:20px;z-index:9}
+#fallback[hidden]{display:none}
+@media (max-width:860px){
+  html,body{height:auto;overflow-x:hidden;overflow-y:auto}
+  #app{position:relative;display:flex;flex-direction:column;min-height:100vh}
+  #stage{position:relative;inset:auto;height:62vh;min-height:340px;flex:none}
+  .mast{left:16px;top:14px;max-width:62%}
+  h1{font-size:44px}.mast p{display:none}
+  .pill{right:12px;top:12px}
+  .panel{position:static;width:auto;max-height:none;margin:0 14px 16px;order:3}
+  .foot{position:static;order:2;max-width:none;margin:8px 14px 12px;pointer-events:auto}
+  .handle{display:none}
+  .reads{flex-wrap:wrap}.reads div{padding-right:12px;margin-right:12px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stage"></div>
+  <header class="mast">
+    <div class="kicker">Material Studies / No. 059 · three.js</div>
+    <h1 id="title">푸른 고래 <span class="jl">젤리.</span></h1>
+    <p id="blurb"></p>
+  </header>
+  <div class="pill"><i id="pillDot"></i><span id="pillText">THREE.JS · 실행 중</span></div>
+
+  <aside class="panel">
+    <div class="sec">
+      <div class="head">표본 <b>fig. 59</b></div>
+      <div id="drop" tabindex="0" role="button" aria-label="사진 선택 또는 놓기">
+        <img id="thumb" alt="">
+        <div class="hint">사진을 여기에 놓거나<br>눌러서 선택하세요</div>
+        <button id="clearImg" type="button" aria-label="사진 지우기">×</button>
+      </div>
+      <input id="file" type="file" accept="image/*" hidden>
+      <textarea id="instr" placeholder="수정 요청 예: 보라색으로, 꼬리를 길게, 볼을 통통하게…"></textarea>
+      <div class="row">
+        <button id="bMake" class="primary make" type="button">젤리로 만들기</button>
+      </div>
+      <div class="row" style="margin-top:7px"><button id="demoWhale" type="button">데모 · 고래</button><button id="demoBear" type="button">데모 · 곰젤리</button></div>
+      <div id="msg"></div>
+    </div>
+    <div class="sec">
+      <div class="head">색상</div>
+      <div class="sws">
+        <button class="sw" data-hex="#3a8ef0" type="button"><span style="--c:#3a8ef0"></span>바다</button>
+        <button class="sw" data-hex="#5fcaf2" type="button"><span style="--c:#5fcaf2"></span>북극</button>
+        <button class="sw" data-hex="#6a6cf0" type="button"><span style="--c:#6a6cf0"></span>황혼</button>
+        <button class="sw" id="swCustom" data-hex="#3a8ef0" type="button"><span style="--c:#3a8ef0"></span>설계도</button>
+      </div>
+    </div>
+    <div class="sec">
+      <label class="sl"><div class="t">단단함 <em id="firmV">0.50</em></div><input id="firm" type="range" min="0" max="1" step="0.01" value="0.5"><div class="e"><span>말랑</span><span>단단</span></div></label>
+      <label class="sl" style="margin-bottom:0"><div class="t">내부 감쇠 <em id="dampV">0.40</em></div><input id="damp" type="range" min="0" max="1" step="0.01" value="0.4"><div class="e"><span>찰랑</span><span>끈적</span></div></label>
+    </div>
+    <div class="sec">
+      <div class="row" style="margin-top:0">
+        <button id="bGulp" type="button">부풀리기</button><button id="bHop" type="button">점프</button><button id="bReset" type="button">초기화</button>
+      </div>
+      <div class="row"><label class="chk"><input id="qSpeed" type="checkbox">¼ 속도</label><label class="chk"><input id="qMesh" type="checkbox">메시 보기</label></div>
+      <div class="row"><button id="bPause" type="button">일시정지</button><button id="bLights" type="button">불 끄기</button></div>
+    </div>
+    <details>
+      <summary>실험 노트</summary>
+      <p class="notes">Claude가 사진과 요청을 읽고 <b>설계도</b>를 씁니다. 부드럽게 이어 붙인 몇 개의 덩어리, 눈, 부푸는 배, 빛나는 구슬 떼가 들어 있습니다. 페이지는 이것을 거리장(SDF)으로 만들고 약 7,000개의 사면체 격자로 채운 뒤, CPU에서 <b>XPBD</b> 소프트바디 물리로 계산합니다. 반짝이는 표면, 우윳빛 속, 기포, 구슬이 모두 사면체에 박혀 있어서 흔들림을 그대로 따라갑니다. <b>부풀리기</b>는 말랑한 부위의 모양과 부피를 함께 키웁니다. <b>불 끄기</b>를 하면 방이 어두워지고 구슬이 젤리 속에서 빛납니다.</p>
+      <p class="notes">젤리를 잡고 끌 수 있습니다. 잡은 채로 휠을 돌리거나 손가락을 하나 더 대면 비틀어집니다. 더블클릭하면 시점이 처음으로 돌아갑니다. 단축키: G 부풀리기 · J 점프 · R 초기화 · L 불 · 스페이스 일시정지.</p>
+      <div class="row"><button id="copySpec" type="button">설계도 복사</button></div>
+      <pre id="specOut"></pre>
+    </details>
+  </aside>
+
+  <footer class="foot">
+    <p class="handle"><i>조작:</i> 젤리를 끌어 보고, <i>부풀리기</i>로 배를 키우고, <i>점프</i>로 튕긴 다음 불을 꺼 보세요.</p>
+    <div class="reads">
+      <div><small>질량</small><b id="rMass">–</b><u>g</u></div>
+      <div><small>부피</small><b id="rVol">–</b></div>
+      <div><small>길이</small><b id="rLen">–</b><u>cm</u></div>
+      <div><small>빛나는 구슬</small><b id="rBeads">–</b></div>
+    </div>
+  </footer>
+</div>
+<div id="fallback" hidden>이 작품은 WebGL2가 필요합니다. 최신 브라우저에서 열어 주세요.</div>
+
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const WHALE = {
+  title: "푸른 고래", blurb: "맑은 파란 젤리로 빚은 가장 큰 고래. 배가 부풀고, 속에서 크릴이 빛납니다.",
+  color: "#3a8ef0", milky: "#f3efe6", coreInset: 0.14,
+  parts: [
+    { s: "capsule", a: [-1.75, 0.34, 0], b: [-0.2, 0.6, 0], r0: 0.1, r1: 0.6, k: 0.3 },
+    { s: "ellipsoid", c: [0.35, 0.62, 0], r: [1.1, 0.64, 0.66], k: 0.3 },
+    { s: "ellipsoid", c: [1.15, 0.5, 0], r: [0.78, 0.46, 0.62], k: 0.25 },
+    { s: "ellipsoid", c: [-1.9, 0.27, 0.36], r: [0.24, 0.075, 0.42], k: 0.1, mirror: true },
+    { s: "capsule", a: [0.75, 0.2, 0.5], b: [0.3, 0.12, 1.0], r0: 0.11, r1: 0.06, k: 0.12, mirror: true },
+    { s: "ellipsoid", c: [-1.0, 0.98, 0], r: [0.2, 0.14, 0.07], k: 0.12 }
+  ],
+  marks: [{ c: [1.5, 0.58, 0.5], r: 0.045, color: "#101216", mirror: true }],
+  puff: { c: [0.85, 0.22, 0], r: 0.75 },
+  glow: { count: 24, color: "#ff7d8c", c: [-0.2, 0.5, 0], spread: [0.55, 0.22, 0.28] },
+  bubbles: 28
+};
+
+const BEAR = {
+  title: "곰젤리", blurb: "통통하고 말랑한 곰젤리. 불을 끄면 속에서 빛납니다.",
+  color: "#ff4d6a", milky: "#ffe1dc", coreInset: 0.13,
+  parts: [
+    { s: "ellipsoid", c: [0, 0.85, 0], r: [0.62, 0.8, 0.6], k: 0.2 },
+    { s: "ellipsoid", c: [0.1, 1.95, 0], r: [0.5, 0.46, 0.5], k: 0.2 },
+    { s: "ellipsoid", c: [0.03, 2.38, 0.36], r: [0.17, 0.17, 0.17], k: 0.12, mirror: true },
+    { s: "ellipsoid", c: [0.56, 1.85, 0], r: [0.21, 0.15, 0.21], k: 0.12 },
+    { s: "capsule", a: [0.1, 1.35, 0.6], b: [0.5, 0.9, 0.88], r0: 0.19, r1: 0.15, k: 0.15, mirror: true },
+    { s: "ellipsoid", c: [0.45, 0.3, 0.4], r: [0.42, 0.3, 0.28], k: 0.15, mirror: true }
+  ],
+  marks: [
+    { c: [0.52, 2.0, 0.2], r: 0.05, color: "#17110f", mirror: true },
+    { c: [0.72, 1.87, 0], r: [0.05, 0.04, 0.06], color: "#17110f" }
+  ],
+  puff: { c: [0.1, 0.9, 0], r: 0.8 },
+  glow: { count: 24, color: "#ffd45e", c: [0.05, 0.9, 0], spread: [0.28, 0.35, 0.28] },
+  bubbles: 20
+};
+
+/* ===== Jelly engine: spec -> SDF -> surface mesh -> XPBD tet soft body ===== */
+const clamp = (x, a, b) => (x < a ? a : x > b ? b : x);
+const num = (v, d) => { v = Number(v); return Number.isFinite(v) ? v : d; };
+const vec3 = (a, d) => Array.isArray(a) && a.length >= 3 ? [num(a[0], d[0]), num(a[1], d[1]), num(a[2], d[2])] : d.slice();
+const hexOk = (s, d) => (/^#[0-9a-fA-F]{6}$/.test(String(s || '')) ? String(s) : d);
+const radii = (r, d) => (typeof r === 'number' ? [r, r, r] : vec3(r, d)).map(v => clamp(Math.abs(v), 0.07, 3));
+
+/* ---------- spec sanitising ---------- */
+function sanitizeSpec(raw) {
+  raw = raw && typeof raw === 'object' ? raw : {};
+  const parts = [];
+  for (const p of (Array.isArray(raw.parts) ? raw.parts : []).slice(0, 32)) {
+    if (!p || typeof p !== 'object') continue;
+    const s = String(p.s || p.shape || 'ellipsoid').toLowerCase();
+    const q = { k: clamp(num(p.k, 0.12), 0, 0.6), sub: !!p.sub, mirror: !!p.mirror };
+    if (s.startsWith('cap') || s.startsWith('cone') || s === 'tube') {
+      q.s = 'capsule';
+      q.a = vec3(p.a, [0, 0, 0]); q.b = vec3(p.b, [1, 0, 0]);
+      q.r0 = clamp(Math.abs(num(p.r0, num(p.r, 0.2))), 0.07, 3);
+      q.r1 = clamp(Math.abs(num(p.r1, q.r0)), 0.07, 3);
+    } else if (s.startsWith('box')) {
+      q.s = 'box'; q.c = vec3(p.c, [0, 0, 0]); q.r = radii(p.r, [0.3, 0.3, 0.3]);
+    } else {
+      q.s = 'ellipsoid'; q.c = vec3(p.c, [0, 0, 0]); q.r = radii(p.r, [0.3, 0.3, 0.3]);
+    }
+    parts.push(q);
+  }
+  const marks = [];
+  for (const m of (Array.isArray(raw.marks) ? raw.marks : []).slice(0, 16)) {
+    if (!m || typeof m !== 'object') continue;
+    marks.push({ c: vec3(m.c, [0, 0, 0]), r: radii(m.r, [0.05, 0.05, 0.05]).map(v => Math.max(0.02, v * 1)), color: hexOk(m.color, '#15171c'), mirror: !!m.mirror });
+  }
+  const spec = {
+    title: String(raw.title || 'Jelly').slice(0, 40),
+    blurb: String(raw.blurb || '').slice(0, 220),
+    color: hexOk(raw.color, '#3a8ef0'),
+    milky: hexOk(raw.milky, '#f3efe6'),
+    coreInset: clamp(num(raw.coreInset, 0.13), 0.05, 0.4),
+    parts, marks,
+    puff: raw.puff && typeof raw.puff === 'object' ? { c: vec3(raw.puff.c, [0, 0, 0]), r: clamp(num(raw.puff.r, 0.6), 0.2, 3) } : null,
+    glow: raw.glow && typeof raw.glow === 'object' ? { count: clamp(Math.round(num(raw.glow.count, 24)), 0, 48), color: hexOk(raw.glow.color, '#ff7d8c'), c: vec3(raw.glow.c, null || [0, 0, 0]), spread: vec3(raw.glow.spread, [0.4, 0.25, 0.25]), has: Array.isArray(raw.glow.c) } : { count: 24, color: '#ff7d8c', c: [0, 0, 0], spread: [0.4, 0.25, 0.25], has: false },
+    bubbles: clamp(Math.round(num(raw.bubbles, 24)), 0, 48),
+  };
+  return spec;
+}
+
+function expandMirror(parts) {
+  const out = [];
+  for (const p of parts) {
+    out.push(p);
+    if (!p.mirror) continue;
+    const zs = p.s === 'capsule' ? [p.a[2], p.b[2]] : [p.c[2]];
+    if (zs.every(z => Math.abs(z) < 1e-3)) continue;
+    const q = { ...p, mirror: false };
+    if (p.s === 'capsule') { q.a = [p.a[0], p.a[1], -p.a[2]]; q.b = [p.b[0], p.b[1], -p.b[2]]; }
+    else q.c = [p.c[0], p.c[1], -p.c[2]];
+    out.push(q);
+  }
+  return out;
+}
+
+function partBox(p) {
+  if (p.s === 'capsule') {
+    const r = Math.max(p.r0, p.r1);
+    return [[Math.min(p.a[0], p.b[0]) - r, Math.min(p.a[1], p.b[1]) - r, Math.min(p.a[2], p.b[2]) - r],
+    [Math.max(p.a[0], p.b[0]) + r, Math.max(p.a[1], p.b[1]) + r, Math.max(p.a[2], p.b[2]) + r]];
+  }
+  return [[p.c[0] - p.r[0], p.c[1] - p.r[1], p.c[2] - p.r[2]], [p.c[0] + p.r[0], p.c[1] + p.r[1], p.c[2] + p.r[2]]];
+}
+
+/* ---------- SDF ---------- */
+const smin = (a, b, k) => { if (k <= 0) return Math.min(a, b); const h = Math.max(k - Math.abs(a - b), 0) / k; return Math.min(a, b) - h * h * k * 0.25; };
+const smax = (a, b, k) => -smin(-a, -b, k);
+
+function makeSDF(parts) {
+  const P = parts.map(p => {
+    const q = { sub: p.sub ? 1 : 0, k: p.k };
+    if (p.s === 'ellipsoid') { q.t = 0; [q.cx, q.cy, q.cz] = p.c; [q.rx, q.ry, q.rz] = p.r; }
+    else if (p.s === 'capsule') {
+      q.t = 1; [q.ax, q.ay, q.az] = p.a; q.bx = p.b[0] - p.a[0]; q.by = p.b[1] - p.a[1]; q.bz = p.b[2] - p.a[2];
+      q.baa = Math.max(q.bx * q.bx + q.by * q.by + q.bz * q.bz, 1e-9); q.r0 = p.r0; q.r1 = p.r1;
+    } else { q.t = 2; [q.cx, q.cy, q.cz] = p.c; [q.rx, q.ry, q.rz] = p.r; q.rd = Math.min(q.rx, q.ry, q.rz) * 0.6; }
+    return q;
+  }).sort((a, b) => a.sub - b.sub);
+  return function sdf(x, y, z) {
+    let d = 1e9;
+    for (let i = 0; i < P.length; i++) {
+      const q = P[i]; let di;
+      if (q.t === 0) {
+        const px = x - q.cx, py = y - q.cy, pz = z - q.cz;
+        const k0 = Math.sqrt((px / q.rx) ** 2 + (py / q.ry) ** 2 + (pz / q.rz) ** 2);
+        const k1 = Math.sqrt((px / (q.rx * q.rx)) ** 2 + (py / (q.ry * q.ry)) ** 2 + (pz / (q.rz * q.rz)) ** 2);
+        di = k1 < 1e-9 ? -Math.min(q.rx, q.ry, q.rz) : k0 * (k0 - 1) / k1;
+      } else if (q.t === 1) {
+        const px = x - q.ax, py = y - q.ay, pz = z - q.az;
+        const t = clamp((px * q.bx + py * q.by + pz * q.bz) / q.baa, 0, 1);
+        const dx = px - q.bx * t, dy = py - q.by * t, dz = pz - q.bz * t;
+        di = Math.sqrt(dx * dx + dy * dy + dz * dz) - (q.r0 + (q.r1 - q.r0) * t);
+      } else {
+        const qx = Math.abs(x - q.cx) - q.rx + q.rd, qy = Math.abs(y - q.cy) - q.ry + q.rd, qz = Math.abs(z - q.cz) - q.rz + q.rd;
+        di = Math.sqrt(Math.max(qx, 0) ** 2 + Math.max(qy, 0) ** 2 + Math.max(qz, 0) ** 2) + Math.min(Math.max(qx, qy, qz), 0) - q.rd;
+      }
+      if (q.sub) d = smax(d, -di, q.k); else d = d > 1e8 ? di : smin(d, di, q.k);
+    }
+    return d;
+  };
+}
+
+/* ---------- naive surface nets ---------- */
+const NET_EDGES = [[0, 1], [2, 3], [4, 5], [6, 7], [0, 2], [1, 3], [4, 6], [5, 7], [0, 4], [1, 5], [2, 6], [3, 7]];
+function surfaceNets(f, bmin, bmax, step, project = true) {
+  const nx = Math.ceil((bmax[0] - bmin[0]) / step) + 3, ny = Math.ceil((bmax[1] - bmin[1]) / step) + 3, nz = Math.ceil((bmax[2] - bmin[2]) / step) + 3;
+  const ox = bmin[0] - step, oy = bmin[1] - step, oz = bmin[2] - step;
+  const vals = new Float32Array(nx * ny * nz);
+  for (let k = 0; k < nz; k++) for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++)
+    vals[i + nx * (j + ny * k)] = f(ox + i * step, oy + j * step, oz + k * step);
+  const cid = new Int32Array(nx * ny * nz).fill(-1);
+  const pos = []; const cv = new Float32Array(8);
+  for (let k = 0; k < nz - 1; k++) for (let j = 0; j < ny - 1; j++) for (let i = 0; i < nx - 1; i++) {
+    let mask = 0;
+    for (let n = 0; n < 8; n++) {
+      const v = vals[(i + (n & 1)) + nx * ((j + ((n >> 1) & 1)) + ny * (k + (n >> 2)))];
+      cv[n] = v; if (v < 0) mask |= 1 << n;
+    }
+    if (mask === 0 || mask === 255) continue;
+    let sx = 0, sy = 0, sz = 0, cnt = 0;
+    for (const [a, b] of NET_EDGES) {
+      if (((mask >> a) & 1) === ((mask >> b) & 1)) continue;
+      const t = cv[a] / (cv[a] - cv[b]);
+      sx += (a & 1) + t * ((b & 1) - (a & 1));
+      sy += ((a >> 1) & 1) + t * (((b >> 1) & 1) - ((a >> 1) & 1));
+      sz += (a >> 2) + t * ((b >> 2) - (a >> 2));
+      cnt++;
+    }
+    cid[i + nx * (j + ny * k)] = pos.length / 3;
+    pos.push(ox + (i + sx / cnt) * step, oy + (j + sy / cnt) * step, oz + (k + sz / cnt) * step);
+  }
+  const idx = [];
+  const dims = [nx, ny, nz];
+  for (let k = 0; k < nz; k++) for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
+    const v0 = vals[i + nx * (j + ny * k)];
+    for (let a = 0; a < 3; a++) {
+      const c = [i, j, k];
+      if (c[a] + 1 >= dims[a]) continue;
+      const v1 = vals[(i + (a === 0)) + nx * ((j + (a === 1)) + ny * (k + (a === 2)))];
+      if ((v0 < 0) === (v1 < 0)) continue;
+      const u = (a + 1) % 3, w = (a + 2) % 3;
+      if (c[u] < 1 || c[w] < 1 || c[u] > dims[u] - 2 || c[w] > dims[w] - 2 || c[a] > dims[a] - 2) continue;
+      const cellAt = (du, dw) => { const cc = [c[0], c[1], c[2]]; cc[u] -= du; cc[w] -= dw; return cid[cc[0] + nx * (cc[1] + ny * cc[2])]; };
+      const q = [cellAt(0, 0), cellAt(1, 0), cellAt(1, 1), cellAt(0, 1)];
+      if (q.some(x => x < 0)) continue;
+      if (v0 >= 0) q.reverse();
+      idx.push(q[0], q[1], q[2], q[0], q[2], q[3]);
+    }
+  }
+  const P = new Float32Array(pos);
+  if (project) {
+    const e = step * 0.25;
+    for (let it = 0; it < 2; it++) for (let v = 0; v < P.length; v += 3) {
+      const x = P[v], y = P[v + 1], z = P[v + 2];
+      const d = f(x, y, z);
+      const gx = f(x + e, y, z) - f(x - e, y, z), gy = f(x, y + e, z) - f(x, y - e, z), gz = f(x, y, z + e) - f(x, y, z - e);
+      const gl = gx * gx + gy * gy + gz * gz; if (gl < 1e-12) continue;
+      const inv = 1 / Math.sqrt(gl), m = clamp(d, -step * 0.6, step * 0.6);
+      P[v] -= gx * inv * m; P[v + 1] -= gy * inv * m; P[v + 2] -= gz * inv * m;
+    }
+  }
+  return { positions: P, indices: new Uint32Array(idx) };
+}
+
+/* ---------- compile spec: scale, centre, sit on the table ---------- */
+function placeSpec(sp, off, s, partsIn) {
+  const T = v => [(v[0] - off[0]) * s, (v[1] - off[1]) * s, (v[2] - off[2]) * s];
+  const parts = (partsIn || sp.parts).map(p => {
+    const q = { ...p, k: p.k * s };
+    if (p.s === 'capsule') { q.a = T(p.a); q.b = T(p.b); q.r0 = p.r0 * s; q.r1 = p.r1 * s; }
+    else { q.c = T(p.c); q.r = p.r.map(v => v * s); }
+    return q;
+  });
+  const marks = sp.marks.map(m => ({ ...m, c: T(m.c), r: m.r.map(v => v * s) }));
+  const puff = sp.puff ? { c: T(sp.puff.c), r: sp.puff.r * s } : null;
+  const glow = { ...sp.glow, c: T(sp.glow.c), spread: sp.glow.spread.map(v => v * s) };
+  return { ...sp, parts, marks, puff, glow };
+}
+
+function compile(raw) {
+  const sp0 = sanitizeSpec(raw);
+  sp0.parts = expandMirror(sp0.parts);
+  sp0.marks = (() => { const out = []; for (const m of sp0.marks) { out.push(m); if (m.mirror && Math.abs(m.c[2]) > 1e-3) out.push({ ...m, mirror: false, c: [m.c[0], m.c[1], -m.c[2]] }); } return out; })();
+  const solid = sp0.parts.filter(p => !p.sub);
+  if (!solid.length) throw new Error('The sculpture has no solid parts.');
+  const mn = [1e9, 1e9, 1e9], mx = [-1e9, -1e9, -1e9];
+  for (const p of solid) { const [a, b] = partBox(p); for (let i = 0; i < 3; i++) { mn[i] = Math.min(mn[i], a[i]); mx[i] = Math.max(mx[i], b[i]); } }
+  const dx = mx[0] - mn[0], dy = mx[1] - mn[1], dz = mx[2] - mn[2];
+  const s = Math.min(3.6 / Math.max(dx, dz, 0.3), 2.6 / Math.max(dy, 0.3));
+  let sp = placeSpec(sp0, [(mn[0] + mx[0]) / 2, mn[1], (mn[2] + mx[2]) / 2], s);
+  // measure the true extent of the blended surface, then re-seat it
+  const pad = 0.5;
+  const b1min = [-(dx * s) / 2 - pad, -pad, -(dz * s) / 2 - pad], b1max = [(dx * s) / 2 + pad, dy * s + pad, (dz * s) / 2 + pad];
+  const m = surfaceNets(makeSDF(sp.parts), b1min, b1max, 0.1, false);
+  if (m.positions.length < 30) throw new Error('The sculpture is empty after blending.');
+  const lo = [1e9, 1e9, 1e9], hi = [-1e9, -1e9, -1e9];
+  for (let i = 0; i < m.positions.length; i += 3) for (let a = 0; a < 3; a++) { lo[a] = Math.min(lo[a], m.positions[i + a]); hi[a] = Math.max(hi[a], m.positions[i + a]); }
+  sp = placeSpec(sp, [(lo[0] + hi[0]) / 2, lo[1], (lo[2] + hi[2]) / 2], 1);
+  const bmin = [lo[0] - (lo[0] + hi[0]) / 2 - 0.05, 0, lo[2] - (lo[2] + hi[2]) / 2 - 0.05];
+  const bmax = [hi[0] - (lo[0] + hi[0]) / 2 + 0.05, hi[1] - lo[1] + 0.05, hi[2] - (lo[2] + hi[2]) / 2 + 0.05];
+  const size = [bmax[0] - bmin[0] - 0.1, bmax[1] - 0.05, bmax[2] - bmin[2] - 0.1];
+  // defaults that depend on the final size
+  if (!sp.puff) sp.puff = { c: [0, size[1] * 0.35, 0], r: Math.max(size[1], size[2]) * 0.5 };
+  if (!sp.glow.has) { sp.glow.c = [0, size[1] * 0.5, 0]; sp.glow.spread = [size[0] * 0.18, size[1] * 0.2, size[2] * 0.2]; }
+  return { ...sp, sdf: makeSDF(sp.parts), bmin, bmax, size };
+}
+
+/* ---------- XPBD tetrahedral soft body ---------- */
+const TET_EVEN = [[0, 1, 2, 4], [3, 1, 2, 7], [5, 1, 4, 7], [6, 2, 4, 7], [1, 2, 4, 7]];
+const DENSITY = 1000; // g per unit^3  (1 unit = 10 cm)
+
+function createSoft(sdf, bmin, bmax, h, puff, maxCells = 1e9) {
+  const ox = bmin[0] - h * 0.5, oy = 0, oz = bmin[2] - h * 0.5;
+  const nx = Math.ceil((bmax[0] - ox) / h) + 1, ny = Math.ceil((bmax[1] - oy) / h) + 1, nz = Math.ceil((bmax[2] - oz) / h) + 1;
+  const incl = new Uint8Array(nx * ny * nz); let cells = 0;
+  for (let k = 0; k < nz; k++) for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++)
+    if (sdf(ox + (i + 0.5) * h, oy + (j + 0.5) * h, oz + (k + 0.5) * h) < 0.42 * h) { incl[i + nx * (j + ny * k)] = 1; cells++; }
+  if (cells > maxCells) return { tooMany: cells };
+  if (cells < 12) throw new Error('The sculpture is too thin to simulate.');
+  const Nx = nx + 1, Ny = ny + 1, Nz = nz + 1;
+  const nodeId = new Int32Array(Nx * Ny * Nz).fill(-1);
+  const pl = []; let N = 0;
+  const cornerOf = (i, j, k, n) => (i + (n & 1)) + Nx * ((j + ((n >> 1) & 1)) + Ny * (k + (n >> 2)));
+  for (let k = 0; k < nz; k++) for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
+    if (!incl[i + nx * (j + ny * k)]) continue;
+    for (let n = 0; n < 8; n++) {
+      const id = cornerOf(i, j, k, n);
+      if (nodeId[id] < 0) { nodeId[id] = N++; pl.push(ox + (i + (n & 1)) * h, oy + (j + ((n >> 1) & 1)) * h, oz + (k + (n >> 2)) * h); }
+    }
+  }
+  const p0 = new Float32Array(pl);
+  const tl = []; const cellFirst = new Int32Array(nx * ny * nz).fill(-1);
+  const vol6 = (a, b, c, d) => {
+    const ax = p0[b * 3] - p0[a * 3], ay = p0[b * 3 + 1] - p0[a * 3 + 1], az = p0[b * 3 + 2] - p0[a * 3 + 2];
+    const bx = p0[c * 3] - p0[a * 3], by = p0[c * 3 + 1] - p0[a * 3 + 1], bz = p0[c * 3 + 2] - p0[a * 3 + 2];
+    const cx = p0[d * 3] - p0[a * 3], cy = p0[d * 3 + 1] - p0[a * 3 + 1], cz = p0[d * 3 + 2] - p0[a * 3 + 2];
+    return ax * (by * cz - bz * cy) + ay * (bz * cx - bx * cz) + az * (bx * cy - by * cx);
+  };
+  for (let k = 0; k < nz; k++) for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
+    const ci = i + nx * (j + ny * k); if (!incl[ci]) continue;
+    cellFirst[ci] = tl.length / 4;
+    const par = (i + j + k) & 1;
+    for (const t of TET_EVEN) {
+      const ids = t.map(n => nodeId[cornerOf(i, j, k, par ? n ^ 1 : n)]);
+      if (vol6(ids[0], ids[1], ids[2], ids[3]) < 0) { const tmp = ids[2]; ids[2] = ids[3]; ids[3] = tmp; }
+      tl.push(ids[0], ids[1], ids[2], ids[3]);
+    }
+  }
+  const tets = new Int32Array(tl); const T = tets.length / 4;
+  const boundary = new Uint8Array(N);
+  for (let k = 0; k <= nz; k++) for (let j = 0; j <= ny; j++) for (let i = 0; i <= nx; i++) {
+    const id = nodeId[i + Nx * (j + Ny * k)]; if (id < 0) continue;
+    for (let dk = -1; dk <= 0; dk++) for (let dj = -1; dj <= 0; dj++) for (let di = -1; di <= 0; di++) {
+      const ci = i + di, cj = j + dj, ck = k + dk;
+      if (ci < 0 || cj < 0 || ck < 0 || ci >= nx || cj >= ny || ck >= nz || !incl[ci + nx * (cj + ny * ck)]) boundary[id] = 1;
+    }
+  }
+  // masses, volumes
+  const vol0 = new Float32Array(T); const mass = new Float32Array(N);
+  let V0 = 0;
+  for (let t = 0; t < T; t++) {
+    const v = vol6(tets[t * 4], tets[t * 4 + 1], tets[t * 4 + 2], tets[t * 4 + 3]) / 6; vol0[t] = v; V0 += v;
+    for (let q = 0; q < 4; q++) mass[tets[t * 4 + q]] += v * 0.25 * DENSITY;
+  }
+  const im = new Float32Array(N); for (let i = 0; i < N; i++) im[i] = 1 / mass[i];
+  // edges
+  const emap = new Map(); const ea = [], eb = [];
+  const PAIRS = [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]];
+  for (let t = 0; t < T; t++) for (const [a, b] of PAIRS) {
+    let u = tets[t * 4 + a], v = tets[t * 4 + b]; if (u > v) { const x = u; u = v; v = x; }
+    const key = u * N + v; if (!emap.has(key)) { emap.set(key, ea.length); ea.push(u); eb.push(v); }
+  }
+  const E = ea.length; const EA = Int32Array.from(ea), EB = Int32Array.from(eb);
+  const rest0 = new Float32Array(E), rest = new Float32Array(E), skinE = new Uint8Array(E);
+  for (let e = 0; e < E; e++) {
+    const a = EA[e] * 3, b = EB[e] * 3;
+    rest0[e] = rest[e] = Math.hypot(p0[a] - p0[b], p0[a + 1] - p0[b + 1], p0[a + 2] - p0[b + 2]);
+    skinE[e] = boundary[EA[e]] && boundary[EB[e]] ? 1 : 0;
+  }
+  // inflate weights
+  const nw = new Float32Array(N), ew = new Float32Array(E), tw = new Float32Array(T);
+  if (puff) for (let i = 0; i < N; i++) {
+    const d = Math.hypot(p0[i * 3] - puff.c[0], p0[i * 3 + 1] - puff.c[1], p0[i * 3 + 2] - puff.c[2]) / puff.r;
+    const x = clamp(1 - d, 0, 1); nw[i] = x * x * (3 - 2 * x);
+  }
+  for (let e = 0; e < E; e++) ew[e] = (nw[EA[e]] + nw[EB[e]]) * 0.5;
+  for (let t = 0; t < T; t++) tw[t] = (nw[tets[t * 4]] + nw[tets[t * 4 + 1]] + nw[tets[t * 4 + 2]] + nw[tets[t * 4 + 3]]) * 0.25;
+  // solve the inflation scale so a full gulp adds ~35% volume
+  const gainOf = s => { let d = 0; for (let t = 0; t < T; t++) { const f = 1 + s * tw[t]; d += vol0[t] * (f * f * f - 1); } return d; };
+  let sInf = 0;
+  { let lo = 0, hi = 1.4; if (gainOf(hi) <= 0.35 * V0) sInf = hi; else { for (let it = 0; it < 30; it++) { const mid = (lo + hi) / 2; if (gainOf(mid) > 0.35 * V0) hi = mid; else lo = mid; } sInf = (lo + hi) / 2; } }
+  // per-tet gradient norm at rest (for volume-constraint compliance)
+  const vrest = Float32Array.from(vol0); const g0 = new Float32Array(T);
+  const pos = Float32Array.from(p0), prev = Float32Array.from(p0), vel = new Float32Array(N * 3);
+  const grad = new Float32Array(12);
+  const tetGrad = (t, P, out) => {
+    const a = tets[t * 4] * 3, b = tets[t * 4 + 1] * 3, c = tets[t * 4 + 2] * 3, d = tets[t * 4 + 3] * 3;
+    const e1x = P[b] - P[a], e1y = P[b + 1] - P[a + 1], e1z = P[b + 2] - P[a + 2];
+    const e2x = P[c] - P[a], e2y = P[c + 1] - P[a + 1], e2z = P[c + 2] - P[a + 2];
+    const e3x = P[d] - P[a], e3y = P[d + 1] - P[a + 1], e3z = P[d + 2] - P[a + 2];
+    const g1x = (e2y * e3z - e2z * e3y) / 6, g1y = (e2z * e3x - e2x * e3z) / 6, g1z = (e2x * e3y - e2y * e3x) / 6;
+    const g2x = (e3y * e1z - e3z * e1y) / 6, g2y = (e3z * e1x - e3x * e1z) / 6, g2z = (e3x * e1y - e3y * e1x) / 6;
+    const g3x = (e1y * e2z - e1z * e2y) / 6, g3y = (e1z * e2x - e1x * e2z) / 6, g3z = (e1x * e2y - e1y * e2x) / 6;
+    out[0] = -(g1x + g2x + g3x); out[1] = -(g1y + g2y + g3y); out[2] = -(g1z + g2z + g3z);
+    out[3] = g1x; out[4] = g1y; out[5] = g1z; out[6] = g2x; out[7] = g2y; out[8] = g2z; out[9] = g3x; out[10] = g3y; out[11] = g3z;
+    return (e1x * g1x + e1y * g1y + e1z * g1z); // = V
+  };
+  for (let t = 0; t < T; t++) {
+    tetGrad(t, p0, grad); let s = 0;
+    for (let q = 0; q < 4; q++) s += im[tets[t * 4 + q]] * (grad[q * 3] ** 2 + grad[q * 3 + 1] ** 2 + grad[q * 3 + 2] ** 2);
+    g0[t] = s;
+  }
+
+  const soft = {
+    N, T, E, tets, pos, prev, vel, p0, im, boundary, cells, h, V0, mass: V0 * DENSITY,
+    origin: [ox, oy, oz], dims: [nx, ny, nz], cellFirst, rest0, EA, EB,
+    params: { firm: 0.5, damp: 0.5 }, sub: 8, gravity: 12, inflate: 0, sInf, grab: null,
+    hits: 0,
+  };
+  let curInf = 0;
+  soft.setInflate = a => {
+    a = clamp(a, 0, 1); if (Math.abs(a - curInf) < 1e-4) return; curInf = a; soft.inflate = a;
+    const k = sInf * a;
+    for (let e = 0; e < E; e++) rest[e] = rest0[e] * (1 + k * ew[e]);
+    for (let t = 0; t < T; t++) { const f = 1 + k * tw[t]; vrest[t] = vol0[t] * f * f * f; }
+  };
+  soft.reset = () => { pos.set(p0); prev.set(p0); vel.fill(0); curInf = -1; soft.setInflate(0); soft.grab = null; };
+  soft.kick = (vx, vy, vz) => { for (let i = 0; i < N; i++) { vel[i * 3] += vx; vel[i * 3 + 1] += vy; vel[i * 3 + 2] += vz; } };
+
+  soft.step = function (dt) {
+    const n = soft.sub, ds = dt / n, inv2 = 1 / (ds * ds);
+    const aE = Math.pow(10, -5.0 - 1.8 * soft.params.firm) * inv2;
+    const qv = 0.9 - 0.85 * soft.params.firm;
+    const drag = Math.exp(-(0.35 + soft.params.damp * 5.5) * ds);
+    const g = soft.gravity;
+    for (let s = 0; s < n; s++) {
+      for (let i = 0; i < N; i++) {
+        const o = i * 3; prev[o] = pos[o]; prev[o + 1] = pos[o + 1]; prev[o + 2] = pos[o + 2];
+        vel[o + 1] -= g * ds;
+        pos[o] += vel[o] * ds; pos[o + 1] += vel[o + 1] * ds; pos[o + 2] += vel[o + 2] * ds;
+      }
+      // edges
+      for (let e = 0; e < E; e++) {
+        const a = EA[e], b = EB[e], ao = a * 3, bo = b * 3;
+        const dx = pos[ao] - pos[bo], dy = pos[ao + 1] - pos[bo + 1], dz = pos[ao + 2] - pos[bo + 2];
+        const len = Math.sqrt(dx * dx + dy * dy + dz * dz); if (len < 1e-9) continue;
+        const wa = im[a], wb = im[b];
+        const dl = -(len - rest[e]) / (wa + wb + (skinE[e] ? 0.5 : 1) * aE) / len;
+        pos[ao] += wa * dl * dx; pos[ao + 1] += wa * dl * dy; pos[ao + 2] += wa * dl * dz;
+        pos[bo] -= wb * dl * dx; pos[bo + 1] -= wb * dl * dy; pos[bo + 2] -= wb * dl * dz;
+      }
+      // volumes
+      for (let t = 0; t < T; t++) {
+        const V = tetGrad(t, pos, grad);
+        let sw = 0;
+        for (let q = 0; q < 4; q++) sw += im[tets[t * 4 + q]] * (grad[q * 3] ** 2 + grad[q * 3 + 1] ** 2 + grad[q * 3 + 2] ** 2);
+        const dl = -(V - vrest[t]) / (sw + qv * g0[t]);
+        for (let q = 0; q < 4; q++) {
+          const id = tets[t * 4 + q], w = im[id] * dl, o = id * 3;
+          pos[o] += w * grad[q * 3]; pos[o + 1] += w * grad[q * 3 + 1]; pos[o + 2] += w * grad[q * 3 + 2];
+        }
+      }
+      // table
+      let hits = 0;
+      for (let i = 0; i < N; i++) {
+        const o = i * 3;
+        if (pos[o + 1] < 0) {
+          pos[o + 1] = 0; hits++;
+          pos[o] = prev[o] + (pos[o] - prev[o]) * 0.35; pos[o + 2] = prev[o + 2] + (pos[o + 2] - prev[o + 2]) * 0.35;
+        }
+      }
+      soft.hits = hits;
+      // grab
+      const G = soft.grab;
+      if (G) {
+        const c = Math.cos(G.twist), sn = Math.sin(G.twist), ax = G.axis[0], ay = G.axis[1], az = G.axis[2];
+        for (let q = 0; q < G.nodes.length; q++) {
+          const o = G.nodes[q] * 3, ox_ = G.off[q * 3], oy_ = G.off[q * 3 + 1], oz_ = G.off[q * 3 + 2];
+          const dot = ax * ox_ + ay * oy_ + az * oz_;
+          const cx = ay * oz_ - az * oy_, cy = az * ox_ - ax * oz_, cz = ax * oy_ - ay * ox_;
+          const rx = ox_ * c + cx * sn + ax * dot * (1 - c), ry = oy_ * c + cy * sn + ay * dot * (1 - c), rz = oz_ * c + cz * sn + az * dot * (1 - c);
+          const w = G.w[q] * 0.45;
+          pos[o] += (G.target[0] + rx - pos[o]) * w; pos[o + 1] += (G.target[1] + ry - pos[o + 1]) * w; pos[o + 2] += (G.target[2] + rz - pos[o + 2]) * w;
+        }
+      }
+      for (let i = 0; i < N * 3; i++) vel[i] = (pos[i] - prev[i]) / ds * drag;
+    }
+  };
+  soft.volume = () => {
+    let v = 0;
+    for (let t = 0; t < T; t++) v += tetGrad(t, pos, grad);
+    return v;
+  };
+  soft.agitation = () => { let s = 0; const m = Math.min(N, 600); const st = Math.max(1, Math.floor(N / m)); let c = 0; for (let i = 0; i < N; i += st) { s += Math.hypot(vel[i * 3], vel[i * 3 + 1], vel[i * 3 + 2]); c++; } return s / c; };
+
+  /* ----- binding render points to tets ----- */
+  const bc = new Float32Array(4);
+  const baryIn = (t, x, y, z, out) => {
+    const a = tets[t * 4] * 3, b = tets[t * 4 + 1] * 3, c = tets[t * 4 + 2] * 3, d = tets[t * 4 + 3] * 3;
+    const e1x = p0[b] - p0[a], e1y = p0[b + 1] - p0[a + 1], e1z = p0[b + 2] - p0[a + 2];
+    const e2x = p0[c] - p0[a], e2y = p0[c + 1] - p0[a + 1], e2z = p0[c + 2] - p0[a + 2];
+    const e3x = p0[d] - p0[a], e3y = p0[d + 1] - p0[a + 1], e3z = p0[d + 2] - p0[a + 2];
+    const qx = x - p0[a], qy = y - p0[a + 1], qz = z - p0[a + 2];
+    const c23x = e2y * e3z - e2z * e3y, c23y = e2z * e3x - e2x * e3z, c23z = e2x * e3y - e2y * e3x;
+    const det = e1x * c23x + e1y * c23y + e1z * c23z; if (Math.abs(det) < 1e-12) return -1e9;
+    const l1 = (qx * c23x + qy * c23y + qz * c23z) / det;
+    const l2 = (e1x * (qy * e3z - qz * e3y) + e1y * (qz * e3x - qx * e3z) + e1z * (qx * e3y - qy * e3x)) / det;
+    const l3 = (e1x * (e2y * qz - e2z * qy) + e1y * (e2z * qx - e2x * qz) + e1z * (e2x * qy - e2y * qx)) / det;
+    out[0] = 1 - l1 - l2 - l3; out[1] = l1; out[2] = l2; out[3] = l3;
+    return Math.min(out[0], out[1], out[2], out[3]);
+  };
+  soft.bind = (pts) => {
+    const n = pts.length / 3; const tet = new Int32Array(n), bary = new Float32Array(n * 4);
+    const tmp = new Float32Array(4), best = new Float32Array(4);
+    for (let p = 0; p < n; p++) {
+      const x = pts[p * 3], y = pts[p * 3 + 1], z = pts[p * 3 + 2];
+      const ci = Math.floor((x - ox) / h), cj = Math.floor((y - oy) / h), ck = Math.floor((z - oz) / h);
+      let bt = -1, bm = -1e9;
+      for (let ring = 0; ring < 2 && bm < -1e-5; ring++) {
+        for (let dk = -ring; dk <= ring; dk++) for (let dj = -ring; dj <= ring; dj++) for (let di = -ring; di <= ring; di++) {
+          if (ring === 1 && Math.abs(di) < 1 && Math.abs(dj) < 1 && Math.abs(dk) < 1) continue;
+          const i = ci + di, j = cj + dj, k = ck + dk;
+          if (i < 0 || j < 0 || k < 0 || i >= nx || j >= ny || k >= nz) continue;
+          const f = cellFirst[i + nx * (j + ny * k)]; if (f < 0) continue;
+          for (let q = 0; q < 5; q++) {
+            const m = baryIn(f + q, x, y, z, tmp);
+            if (m > bm) { bm = m; bt = f + q; best.set(tmp); }
+          }
+        }
+      }
+      if (bt < 0) { // far outside: fall back to the nearest node's tet
+        let bd = 1e9, bn = 0; for (let i = 0; i < N; i++) { const d = (p0[i * 3] - x) ** 2 + (p0[i * 3 + 1] - y) ** 2 + (p0[i * 3 + 2] - z) ** 2; if (d < bd) { bd = d; bn = i; } }
+        for (let t = 0; t < T; t++) if (tets[t * 4] === bn || tets[t * 4 + 1] === bn || tets[t * 4 + 2] === bn || tets[t * 4 + 3] === bn) { bt = t; break; }
+        best.set([0.25, 0.25, 0.25, 0.25]);
+      }
+      // keep extrapolation tame
+      let s = 0; for (let q = 0; q < 4; q++) { best[q] = Math.max(best[q], -0.4); s += best[q]; }
+      tet[p] = bt; for (let q = 0; q < 4; q++) bary[p * 4 + q] = best[q] / s;
+    }
+    return { tet, bary, n };
+  };
+  soft.skin = (b, out) => {
+    for (let p = 0; p < b.n; p++) {
+      const t = b.tet[p] * 4; const a = tets[t] * 3, bb = tets[t + 1] * 3, c = tets[t + 2] * 3, d = tets[t + 3] * 3;
+      const w0 = b.bary[p * 4], w1 = b.bary[p * 4 + 1], w2 = b.bary[p * 4 + 2], w3 = b.bary[p * 4 + 3];
+      out[p * 3] = w0 * pos[a] + w1 * pos[bb] + w2 * pos[c] + w3 * pos[d];
+      out[p * 3 + 1] = w0 * pos[a + 1] + w1 * pos[bb + 1] + w2 * pos[c + 1] + w3 * pos[d + 1];
+      out[p * 3 + 2] = w0 * pos[a + 2] + w1 * pos[bb + 2] + w2 * pos[c + 2] + w3 * pos[d + 2];
+    }
+  };
+  return soft;
+}
+
+function buildSoftAuto(sdf, bmin, bmax, puff, maxCells = 4200) {
+  let h = 0.12;
+  for (let it = 0; it < 6; it++) {
+    const s = createSoft(sdf, bmin, bmax, h, puff, maxCells);
+    if (!s.tooMany) return s;
+    h *= Math.cbrt(s.tooMany / maxCells) * 1.03;
+  }
+  throw new Error('The sculpture is too large to simulate.');
+}
+
+/* ===== App: three.js renderer, interaction, UI, Claude recipe ===== */
+const $ = s => document.querySelector(s);
+const stage = $('#stage');
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+} catch (err) { $('#fallback').hidden = false; throw err; }
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.NeutralToneMapping;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+stage.appendChild(renderer.domElement);
+
+const BG_LIGHT = new THREE.Color('#E2DFDA'), BG_DARK = new THREE.Color('#0b0c10');
+const scene = new THREE.Scene();
+scene.background = BG_LIGHT.clone();
+const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+const key = new THREE.DirectionalLight(0xfff3e4, 2.4);
+key.position.set(2.8, 6, 3.2); key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+Object.assign(key.shadow.camera, { near: 0.5, far: 20, left: -4.5, right: 4.5, top: 4.5, bottom: -4.5 });
+key.shadow.radius = 7; key.shadow.bias = -0.0004; key.shadow.normalBias = 0.02;
+scene.add(key, key.target);
+const hemi = new THREE.HemisphereLight(0xffffff, 0xd9d3c8, 0.3); scene.add(hemi);
+const glowLight = new THREE.PointLight(0xffffff, 0, 0, 2); scene.add(glowLight);
+
+/* table furniture: shadow, tinted caustic, contact AO, glow pool */
+const floorGeo = new THREE.PlaneGeometry(40, 40).rotateX(-Math.PI / 2);
+const shadowMat = new THREE.ShadowMaterial({ opacity: 0.2, color: 0x1b2a55 });
+const shadowPlane = new THREE.Mesh(floorGeo, shadowMat); shadowPlane.receiveShadow = true; shadowPlane.position.y = 0.0015; scene.add(shadowPlane);
+function radialTex() {
+  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
+  const gr = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+  gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.45, 'rgba(255,255,255,.55)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 256, 256);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+const rtex = radialTex();
+const quad = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
+const tintMat = new THREE.MeshBasicMaterial({ map: rtex, transparent: true, opacity: 0.42, depthWrite: false, toneMapped: false });
+const tint = new THREE.Mesh(quad, tintMat); tint.position.y = 0.003; scene.add(tint);
+const aoMat = new THREE.MeshBasicMaterial({ map: rtex, color: 0x000000, transparent: true, opacity: 0.3, depthWrite: false, toneMapped: false });
+const ao = new THREE.Mesh(quad, aoMat); ao.position.y = 0.0035; scene.add(ao);
+const poolMat = new THREE.ShaderMaterial({
+  transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+  uniforms: { uL: { value: new THREE.Vector3(0, 0.5, 0) }, uC: { value: new THREE.Color(0x6aa8ff) }, uI: { value: 0 } },
+  vertexShader: 'varying vec3 vW; void main(){ vW=(modelMatrix*vec4(position,1.)).xyz; gl_Position=projectionMatrix*viewMatrix*vec4(vW,1.); }',
+  fragmentShader: [
+    'varying vec3 vW; uniform vec3 uL; uniform vec3 uC; uniform float uI;',
+    'void main(){',
+    '  vec2 d=vW.xz-uL.xz; float h=max(uL.y,.2);',
+    '  float irr=h/pow(dot(d,d)+h*h,1.5); float fade=1.-smoothstep(3.,6.,length(d));',
+    '  gl_FragColor=vec4(uC*irr*uI*fade,1.);',
+    '  #include <tonemapping_fragment>',
+    '  #include <colorspace_fragment>',
+    '}'].join('\n')
+});
+const pool = new THREE.Mesh(floorGeo, poolMat); pool.position.y = 0.004; pool.renderOrder = 5; scene.add(pool);
+shadowPlane.renderOrder = 1; tint.renderOrder = 2; ao.renderOrder = 3;
+
+const jellyMat = new THREE.MeshPhysicalMaterial({
+  color: 0x3a8ef0, transmission: 1, thickness: 1.0, ior: 1.26, roughness: 0.07, metalness: 0,
+  attenuationColor: new THREE.Color(0x3a8ef0), attenuationDistance: 0.95,
+  clearcoat: 1, clearcoatRoughness: 0.04, specularIntensity: 1, envMapIntensity: 1.1
+});
+const coreMat = new THREE.MeshStandardMaterial({ color: 0xf3efe6, roughness: 0.62, metalness: 0, envMapIntensity: 0.7 });
+const bubbleMat = new THREE.MeshStandardMaterial({ color: 0xf4fbff, roughness: 0.08, metalness: 0, envMapIntensity: 1.6 });
+const beadMat = new THREE.MeshStandardMaterial({ color: 0xff7d8c, emissive: 0xff7d8c, emissiveIntensity: 0.15, roughness: 0.45 });
+const lineMat = new THREE.LineBasicMaterial({ color: 0x14182a, transparent: true, opacity: 0.55, depthTest: false });
+const sphereGeo = new THREE.SphereGeometry(1, 14, 10);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.08; controls.enablePan = false;
+controls.maxPolarAngle = Math.PI / 2 - 0.04; controls.rotateSpeed = 0.8;
+
+/* ---------- state ---------- */
+let cur = null;            // current built sculpture
+let spec = null;           // current recipe (sanitised JSON the user may copy)
+let speed = 1, paused = false, showMesh = false, dark = false, darkV = 0;
+let gulp = { phase: 'idle', t: 0 };
+let flick = 1;
+const palette = { Ocean: '#3a8ef0', Arctic: '#5fcaf2', Twilight: '#6a6cf0' };
+let jellyHex = '#3a8ef0';
+
+function rng(seed) { let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+function disposeCur() {
+  if (!cur) return;
+  for (const o of cur.objs) { scene.remove(o); o.geometry && o.geometry !== sphereGeo && o.geometry.dispose(); }
+  cur = null;
+}
+
+function setJellyColor(hex) {
+  jellyHex = hex;
+  const c = new THREE.Color(hex);
+  jellyMat.color.copy(c).lerp(new THREE.Color(0xffffff), 0.12); jellyMat.attenuationColor.copy(c);
+  tintMat.color.copy(c).multiplyScalar(0.8);
+  poolMat.uniforms.uC.value.copy(c).lerp(new THREE.Color(0xffffff), 0.15);
+  glowLight.color.copy(c).lerp(new THREE.Color(0xffffff), 0.25);
+  document.querySelectorAll('.sw').forEach(b => b.classList.toggle('on', b.dataset.hex.toLowerCase() === hex.toLowerCase()));
+}
+
+/* ---------- build a sculpture from a recipe ---------- */
+function build(recipe) {
+  const c = compile(recipe);
+  const soft = buildSoftAuto(c.sdf, c.bmin, c.bmax, c.puff);
+  soft.params.firm = +$('#firm').value; soft.params.damp = +$('#damp').value;
+  const net = surfaceNets(c.sdf, c.bmin, c.bmax, 0.05);
+  const inset = c.coreInset; const sdf = c.sdf;
+  const core = surfaceNets((x, y, z) => sdf(x, y, z) + inset, c.bmin, c.bmax, 0.07);
+  if (net.indices.length < 60) throw new Error('이 설계도로는 표면을 만들 수 없습니다.');
+
+  // rest-space volume of the visible surface (for the mass readout)
+  let mv = 0; { const P = net.positions, I = net.indices; for (let i = 0; i < I.length; i += 3) { const a = I[i] * 3, b = I[i + 1] * 3, d = I[i + 2] * 3; mv += (P[a] * (P[b + 1] * P[d + 2] - P[b + 2] * P[d + 1]) - P[a + 1] * (P[b] * P[d + 2] - P[b + 2] * P[d]) + P[a + 2] * (P[b] * P[d + 1] - P[b + 1] * P[d])) / 6; } }
+
+  disposeCur();
+  const objs = [];
+  const mk = (n, mat, cast) => {
+    const g = new THREE.BufferGeometry();
+    const pos = new THREE.BufferAttribute(Float32Array.from(n.positions), 3); pos.setUsage(THREE.DynamicDrawUsage);
+    g.setAttribute('position', pos); g.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(n.positions.length), 3));
+    g.setIndex(new THREE.BufferAttribute(n.indices, 1));
+    const m = new THREE.Mesh(g, mat); m.frustumCulled = false; m.castShadow = !!cast; scene.add(m); objs.push(m);
+    g.computeVertexNormals();
+    return { mesh: m, bind: soft.bind(n.positions), rest: n.positions, out: pos.array };
+  };
+  const outer = mk(net, jellyMat, true);
+  const inner = mk(core, coreMat, false);
+  coreMat.color.set(c.milky);
+
+  // marks
+  const marks = c.marks.map(m => {
+    const mesh = new THREE.Mesh(sphereGeo, new THREE.MeshStandardMaterial({ color: m.color, roughness: 0.28, envMapIntensity: 1.2 }));
+    mesh.scale.set(m.r[0], m.r[1], m.r[2]); scene.add(mesh); objs.push(mesh);
+    return { mesh, bind: soft.bind(new Float32Array(m.c)), out: new Float32Array(3) };
+  });
+  // bubbles
+  const R = rng(7); const bp = []; const br = [];
+  const pc = c.puff.c, pr = c.puff.r;
+  for (let tries = 0; tries < 900 && br.length < c.bubbles; tries++) {
+    const x = c.bmin[0] + R() * (c.bmax[0] - c.bmin[0]), y = R() * c.bmax[1], z = c.bmin[2] + R() * (c.bmax[2] - c.bmin[2]);
+    const r = 0.025 + R() * 0.035;
+    if (c.sdf(x, y, z) > -(r + 0.12) - c.coreInset * 0.2) continue;
+    if (Math.hypot(x - pc[0], y - pc[1], z - pc[2]) < pr * 0.9) continue;
+    bp.push(x, y, z); br.push(r);
+  }
+  let bubbles = null;
+  if (br.length) {
+    const im = new THREE.InstancedMesh(sphereGeo, bubbleMat, br.length); im.frustumCulled = false; im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    scene.add(im); objs.push(im);
+    bubbles = { mesh: im, bind: soft.bind(Float32Array.from(bp)), out: new Float32Array(bp.length), r: br };
+  }
+  // glow beads: each bead follows a closed path whose every point is embedded in the tets
+  let beads = null;
+  const NB = c.glow.count, M = 20;
+  if (NB > 0) {
+    const pts = new Float32Array(NB * M * 3); const G = c.glow; const S = rng(21);
+    const phase = [], rate = [], sz = [];
+    for (let b = 0; b < NB; b++) {
+      let cx = G.c[0], cy = G.c[1], cz = G.c[2];
+      for (let t = 0; t < 80; t++) {
+        const x = G.c[0] + (S() * 2 - 1) * G.spread[0], y = G.c[1] + (S() * 2 - 1) * G.spread[1], z = G.c[2] + (S() * 2 - 1) * G.spread[2];
+        if (c.sdf(x, y, z) < -0.16) { cx = x; cy = y; cz = z; break; }
+      }
+      let ux = S() - 0.5, uy = S() - 0.5, uz = S() - 0.5; let l = Math.hypot(ux, uy, uz) || 1; ux /= l; uy /= l; uz /= l;
+      let vx = S() - 0.5, vy = S() - 0.5, vz = S() - 0.5;
+      const d = vx * ux + vy * uy + vz * uz; vx -= d * ux; vy -= d * uy; vz -= d * uz; l = Math.hypot(vx, vy, vz) || 1; vx /= l; vy /= l; vz /= l;
+      const rr = 0.09 + S() * 0.14, ph = S() * 6.28;
+      for (let m = 0; m < M; m++) {
+        const th = m / M * Math.PI * 2, w = rr * (1 + 0.3 * Math.sin(3 * th + ph));
+        let x = cx + (ux * Math.cos(th) + vx * Math.sin(th)) * w, y = cy + (uy * Math.cos(th) + vy * Math.sin(th)) * w, z = cz + (uz * Math.cos(th) + vz * Math.sin(th)) * w;
+        for (let k = 0; k < 6 && c.sdf(x, y, z) > -0.1; k++) { x = cx + (x - cx) * 0.75; y = cy + (y - cy) * 0.75; z = cz + (z - cz) * 0.75; }
+        const o = (b * M + m) * 3; pts[o] = x; pts[o + 1] = y; pts[o + 2] = z;
+      }
+      phase.push(S() * M); rate.push(0.5 + S() * 0.8); sz.push(0.034 + S() * 0.02);
+    }
+    const im = new THREE.InstancedMesh(sphereGeo, beadMat, NB); im.frustumCulled = false; im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    scene.add(im); objs.push(im);
+    beads = { mesh: im, bind: soft.bind(pts), out: new Float32Array(pts.length), M, NB, phase, rate, sz, t: 0 };
+    beadMat.color.set(G.color); beadMat.emissive.set(G.color);
+  }
+  // lattice lines for "Show mesh"
+  const lp = []; for (let e = 0; e < soft.E; e++) if (soft.boundary[soft.EA[e]] && soft.boundary[soft.EB[e]]) lp.push(soft.EA[e], soft.EB[e]);
+  const lg = new THREE.BufferGeometry(); const lpos = new THREE.BufferAttribute(new Float32Array(lp.length * 3), 3); lpos.setUsage(THREE.DynamicDrawUsage);
+  lg.setAttribute('position', lpos);
+  const lines = new THREE.LineSegments(lg, lineMat); lines.frustumCulled = false; lines.visible = showMesh; lines.renderOrder = 10; scene.add(lines); objs.push(lines);
+
+  // table decals follow the footprint
+  tint.scale.set(c.size[0] * 1.35, 1, c.size[2] * 1.45); ao.scale.set(c.size[0] * 1.02, 1, c.size[2] * 1.05);
+
+  cur = { c, soft, outer, inner, marks, bubbles, beads, lines, lp, lpos, objs, meshVol: mv, restLenX: 0 };
+  { let lo = 1e9, hi = -1e9; for (let i = 0; i < soft.N; i++) { lo = Math.min(lo, soft.p0[i * 3]); hi = Math.max(hi, soft.p0[i * 3]); } cur.nodeX = hi - lo; cur.restLenX = c.size[0]; }
+  { const h1 = $('#title'); h1.textContent = ''; const w = c.title.trim().split(/\s+/);
+    h1.append(w.slice(0, -1).join(' ') || w[0]);
+    if (w.length > 1) { h1.append(document.createElement('br'), w[w.length - 1] + ' '); } else h1.append(' ');
+    const sp = document.createElement('span'); sp.className = 'jl'; sp.textContent = '젤리.'; h1.append(sp); }
+  $('#blurb').textContent = c.blurb || '젤리 습작. 잡고, 주무르고, 불을 꺼 보세요.';
+  setJellyColor(c.color); swatchCustom(c.color);
+  fitCamera(true);
+  gulp = { phase: 'idle', t: 0 };
+  sync(); readouts(true);
+}
+
+function swatchCustom(hex) { const b = $('#swCustom'); b.dataset.hex = hex; b.style.setProperty('--c', hex); b.title = 'From the recipe'; b.classList.toggle('on', hex.toLowerCase() === jellyHex.toLowerCase()); }
+
+/* ---------- camera ---------- */
+const isDesk = () => matchMedia('(min-width: 861px)').matches;
+function fitCamera(snap) {
+  if (!cur) return;
+  const sz = cur.c.size, w = stage.clientWidth, h = stage.clientHeight;
+  const panel = isDesk() ? $('.panel').offsetWidth + 24 : 0;
+  const aspect = Math.max(0.3, (w - panel) / h); const vf = camera.fov * Math.PI / 180;
+  const hf = 2 * Math.atan(Math.tan(vf / 2) * aspect);
+  const R = 0.5 * Math.hypot(sz[0], sz[1] * 1.25, sz[2]) * 0.95;
+  const dist = R / Math.sin(Math.min(vf, hf) / 2) * 0.9;
+  cur.home = { dist, target: new THREE.Vector3(0, sz[1] * 0.42, 0) };
+  if (snap) goHome();
+  controls.minDistance = dist * 0.35; controls.maxDistance = dist * 2.2;
+}
+function goHome() {
+  if (!cur) return; const { dist, target } = cur.home; const el = 0.36, az = 0.62;
+  controls.target.copy(target);
+  camera.position.set(target.x + dist * Math.cos(el) * Math.sin(az), target.y + dist * Math.sin(el), target.z + dist * Math.cos(el) * Math.cos(az));
+  controls.update();
+}
+function resize() {
+  const w = stage.clientWidth, h = stage.clientHeight; if (!w || !h) return;
+  renderer.setSize(w, h); camera.aspect = w / h;
+  if (isDesk()) camera.setViewOffset(w, h, ($('.panel').offsetWidth + 24) * 0.5, -h * 0.015, w, h); else camera.clearViewOffset();
+  camera.updateProjectionMatrix(); fitCamera(false);
+}
+new ResizeObserver(resize).observe(stage); addEventListener('resize', resize);
+renderer.domElement.addEventListener('dblclick', e => { if (!grab) goHome(); });
+
+/* ---------- sync physics -> render ---------- */
+const _n = new THREE.Vector3();
+function sync() {
+  if (!cur) return; const { soft, outer, inner, marks, bubbles, beads } = cur;
+  soft.skin(outer.bind, outer.out); outer.mesh.geometry.attributes.position.needsUpdate = true; outer.mesh.geometry.computeVertexNormals();
+  soft.skin(inner.bind, inner.out); inner.mesh.geometry.attributes.position.needsUpdate = true; inner.mesh.geometry.computeVertexNormals();
+  for (const m of marks) { soft.skin(m.bind, m.out); m.mesh.position.set(m.out[0], m.out[1], m.out[2]); }
+  const dm = new THREE.Matrix4();
+  if (bubbles) {
+    soft.skin(bubbles.bind, bubbles.out);
+    for (let i = 0; i < bubbles.r.length; i++) { dm.makeScale(bubbles.r[i], bubbles.r[i], bubbles.r[i]).setPosition(bubbles.out[i * 3], bubbles.out[i * 3 + 1], bubbles.out[i * 3 + 2]); bubbles.mesh.setMatrixAt(i, dm); }
+    bubbles.mesh.instanceMatrix.needsUpdate = true;
+  }
+  let cx = 0, cy = 0, cz = 0;
+  if (beads) {
+    soft.skin(beads.bind, beads.out); const M = beads.M;
+    for (let b = 0; b < beads.NB; b++) {
+      let u = (beads.t * beads.rate[b] + beads.phase[b]) % M; if (u < 0) u += M;
+      const i0 = Math.floor(u), f = u - i0, f2 = f * f * (3 - 2 * f), i1 = (i0 + 1) % M;
+      const o0 = (b * M + i0) * 3, o1 = (b * M + i1) * 3, o = beads.out;
+      const x = o[o0] + (o[o1] - o[o0]) * f2, y = o[o0 + 1] + (o[o1 + 1] - o[o0 + 1]) * f2, z = o[o0 + 2] + (o[o1 + 2] - o[o0 + 2]) * f2;
+      cx += x; cy += y; cz += z;
+      dm.makeScale(beads.sz[b], beads.sz[b], beads.sz[b]).setPosition(x, y, z); beads.mesh.setMatrixAt(b, dm);
+    }
+    beads.mesh.instanceMatrix.needsUpdate = true; cx /= beads.NB; cy /= beads.NB; cz /= beads.NB;
+    glowLight.position.set(cx, cy, cz); poolMat.uniforms.uL.value.set(cx, cy, cz);
+  }
+  if (showMesh) {
+    const lp = cur.lp, a = cur.lpos.array, p = soft.pos;
+    for (let i = 0; i < lp.length; i++) { a[i * 3] = p[lp[i] * 3]; a[i * 3 + 1] = p[lp[i] * 3 + 1]; a[i * 3 + 2] = p[lp[i] * 3 + 2]; }
+    cur.lpos.needsUpdate = true;
+  }
+}
+
+/* ---------- actions ---------- */
+function doGulp() { if (!cur) return; gulp = { phase: 'fill', t: 0 }; cur.soft.kick(0.5, 1.4, 0); }
+function doHop() { if (!cur) return; cur.soft.kick(1.4, 3.3, 0); }
+function doReset() { if (!cur) return; cur.soft.reset(); gulp = { phase: 'idle', t: 0 }; sync(); }
+function setDark(v) { dark = v; $('#bLights').textContent = dark ? '불 켜기' : '불 끄기'; $('#bLights').classList.toggle('on', dark); document.body.classList.toggle('dark', dark); }
+function setPaused(v) { paused = v; $('#bPause').textContent = paused ? '다시 재생' : '일시정지'; $('#bPause').classList.toggle('on', paused); }
+$('#bGulp').onclick = doGulp; $('#bHop').onclick = doHop; $('#bReset').onclick = doReset;
+$('#bPause').onclick = () => setPaused(!paused); $('#bLights').onclick = () => setDark(!dark);
+$('#qSpeed').onchange = e => { speed = e.target.checked ? 0.25 : 1; };
+$('#qMesh').onchange = e => { showMesh = e.target.checked; if (cur) cur.lines.visible = showMesh; };
+$('#firm').oninput = e => { if (cur) cur.soft.params.firm = +e.target.value; $('#firmV').textContent = (+e.target.value).toFixed(2); };
+$('#damp').oninput = e => { if (cur) cur.soft.params.damp = +e.target.value; $('#dampV').textContent = (+e.target.value).toFixed(2); };
+document.querySelectorAll('.sw').forEach(b => b.onclick = () => setJellyColor(b.dataset.hex));
+addEventListener('keydown', e => {
+  if (/^(TEXTAREA|INPUT)$/.test(e.target.tagName) && e.target.type !== 'checkbox' && e.target.type !== 'range') return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === 'g') doGulp(); else if (k === 'b' || k === 'j') doHop(); else if (k === 'r') doReset(); else if (k === 'l') setDark(!dark);
+  else if (k === ' ') { e.preventDefault(); setPaused(!paused); }
+});
+
+/* ---------- grab / drag / twist ---------- */
+const ray = new THREE.Raycaster(); const ndc = new THREE.Vector2();
+let grab = null; let secondId = null, secondX = 0;
+const el = renderer.domElement;
+function setNdc(e) { const r = el.getBoundingClientRect(); ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); }
+el.addEventListener('pointerdown', e => {
+  if (!cur) return;
+  if (grab && secondId === null && e.pointerId !== grab.id) { secondId = e.pointerId; secondX = e.clientX; el.setPointerCapture(e.pointerId); e.stopImmediatePropagation(); return; }
+  setNdc(e); ray.setFromCamera(ndc, camera);
+  cur.outer.mesh.geometry.computeBoundingSphere();
+  const hit = ray.intersectObject(cur.outer.mesh, false)[0]; if (!hit) return;
+  e.stopImmediatePropagation(); controls.enabled = false; el.setPointerCapture(e.pointerId);
+  const soft = cur.soft, pt = hit.point; const R = 0.42;
+  const nodes = [], off = [], w = [];
+  for (let i = 0; i < soft.N; i++) {
+    const dx = soft.pos[i * 3] - pt.x, dy = soft.pos[i * 3 + 1] - pt.y, dz = soft.pos[i * 3 + 2] - pt.z; const d = Math.hypot(dx, dy, dz);
+    if (d < R) { nodes.push(i); off.push(dx, dy, dz); const f = 1 - d / R; w.push(0.25 + 0.75 * f * f); }
+  }
+  if (!nodes.length) { controls.enabled = true; return; }
+  const dir = camera.getWorldDirection(new THREE.Vector3());
+  grab = { id: e.pointerId, nodes: Int32Array.from(nodes), off: Float32Array.from(off), w: Float32Array.from(w), target: [pt.x, pt.y, pt.z], twist: 0, axis: [dir.x, dir.y, dir.z], plane: new THREE.Plane().setFromNormalAndCoplanarPoint(dir, pt) };
+  soft.grab = grab; el.style.cursor = 'grabbing';
+}, true);
+el.addEventListener('pointermove', e => {
+  if (!grab) { if (cur && e.buttons === 0) { setNdc(e); ray.setFromCamera(ndc, camera); el.style.cursor = ray.intersectObject(cur.outer.mesh, false).length ? 'grab' : 'default'; } return; }
+  if (e.pointerId === secondId) { grab.twist += (e.clientX - secondX) * 0.012; secondX = e.clientX; return; }
+  if (e.pointerId !== grab.id) return;
+  setNdc(e); ray.setFromCamera(ndc, camera); const p = new THREE.Vector3();
+  if (ray.ray.intersectPlane(grab.plane, p)) { grab.target = [p.x, Math.max(0.05, p.y), p.z]; }
+});
+function endGrab(e) {
+  if (e.pointerId === secondId) { secondId = null; return; }
+  if (grab && e.pointerId === grab.id) { cur.soft.grab = null; grab = null; secondId = null; controls.enabled = true; el.style.cursor = 'grab'; }
+}
+el.addEventListener('pointerup', endGrab); el.addEventListener('pointercancel', endGrab);
+el.addEventListener('wheel', e => { if (grab) { e.preventDefault(); e.stopImmediatePropagation(); grab.twist += e.deltaY * 0.004; } }, { passive: false, capture: true });
+
+/* ---------- readouts ---------- */
+const ro = { mass: $('#rMass'), vol: $('#rVol'), len: $('#rLen'), beads: $('#rBeads') };
+function readouts(force) {
+  if (!cur) return; const s = cur.soft;
+  const vol = s.volume() / s.V0;
+  let lo = 1e9, hi = -1e9; for (let i = 0; i < s.N; i++) { const x = s.pos[i * 3]; if (x < lo) lo = x; if (x > hi) hi = x; }
+  ro.mass.textContent = Math.round(cur.meshVol * 1000).toLocaleString('en-US');
+  ro.vol.textContent = (vol * 100).toFixed(1) + '%';
+  ro.len.textContent = (cur.restLenX * 10 * (hi - lo) / cur.nodeX).toFixed(1);
+  ro.beads.textContent = cur.beads ? cur.beads.NB : 0;
+}
+
+/* ---------- main loop ---------- */
+let last = performance.now(), acc = 0, frames = 0, pms = 4;
+function frame(now) {
+  requestAnimationFrame(frame);
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (cur) {
+    const soft = cur.soft;
+    if (!paused) {
+      acc += dt * speed; let n = 0;
+      while (acc >= 1 / 60 && n < 3) {
+        // gulp envelope: fill fast, hold, then slowly strain out
+        if (gulp.phase !== 'idle') {
+          gulp.t += 1 / 60 / Math.max(speed, 0.01) * speed;
+          let a = soft.inflate;
+          if (gulp.phase === 'fill') { a += (1 - a) * 0.11; if (gulp.t > 0.9) { gulp.phase = 'hold'; gulp.t = 0; } }
+          else if (gulp.phase === 'hold') { a = 1; if (gulp.t > 1.3) { gulp.phase = 'drain'; gulp.t = 0; } }
+          else { a -= 0.0042 + a * 0.004; if (a <= 0.002) { a = 0; gulp.phase = 'idle'; } }
+          soft.setInflate(a);
+        }
+        const t0 = performance.now(); soft.step(1 / 60); const ms = performance.now() - t0;
+        pms += (ms - pms) * 0.08; if (pms > 8.5 && soft.sub > 4) { soft.sub--; pms = 6; } else if (pms < 3.2 && soft.sub < 10) { soft.sub++; pms = 5; }
+        acc -= 1 / 60; n++;
+      }
+      if (n === 3) acc = 0;
+      if (cur.beads) cur.beads.t += dt * speed * (2.2 + 4 * soft.inflate);
+    }
+    sync();
+    if ((frames++ % 8) === 0) readouts();
+    // lights out
+    darkV += ((dark ? 1 : 0) - darkV) * (1 - Math.exp(-dt * 2.6));
+    const ag = soft.agitation();
+    flick += ((0.72 + 0.28 * Math.random() + Math.min(ag, 2) * Math.random() * 0.9) - flick) * 0.35;
+    const bg = BG_LIGHT.clone().lerp(BG_DARK, darkV); scene.background.copy(bg); document.body.style.backgroundColor = '#' + bg.getHexString();
+    key.intensity = 2.4 * (1 - 0.94 * darkV); hemi.intensity = 0.3 * (1 - 0.95 * darkV);
+    scene.environmentIntensity = 1 - 0.95 * darkV; shadowMat.opacity = 0.2 * (1 - darkV); tintMat.opacity = 0.42 * (1 - darkV); aoMat.opacity = 0.3 * (1 - 0.6 * darkV);
+    glowLight.intensity = 5 * darkV * flick; poolMat.uniforms.uI.value = 0.16 * darkV * flick;
+    beadMat.emissiveIntensity = 0.15 + 5.5 * darkV * flick; coreMat.emissiveIntensity = 0;
+  }
+  controls.update(); renderer.render(scene, camera);
+}
+
+/* ---------- Claude: image + words -> recipe ---------- */
+const pill = $('#pillText'), pillDot = $('#pillDot'), msg = $('#msg');
+function busy(on, text) { document.body.classList.toggle('busy', on); pill.textContent = on ? (text || 'CLAUDE · 조각 중…') : 'THREE.JS · 실행 중'; pillDot.classList.toggle('work', on); $('#bMake').disabled = on; }
+function say(text, bad) { msg.textContent = text || ''; msg.classList.toggle('bad', !!bad); }
+
+const SYSTEM = `You are the sculptor's assistant inside a jelly-toy web app. Look at the attached picture (if there is one) and the user's request, and design a plump, translucent JELLY version of its main subject as a JSON recipe. Reply with ONE JSON object only: no prose, no code fences.
+
+Coordinate frame: x = the way the subject faces (its front), y = up, z = left/right. Units are arbitrary (the subject should be roughly 2 to 4 units across); the app rescales it and sets it on a table, resting on its belly or feet. Arrange parts so the shape reads well from a 3/4 front view.
+
+Fields:
+- "title": 1 to 3 words naming the subject, written in Korean (for example "붉은 여우"; do not add the word jelly).
+- "blurb": one playful sentence about this jelly, written in Korean.
+- "color": main jelly tint "#rrggbb", saturated, taken from the subject's dominant colour (it is applied to a translucent material, so pick strong mid-tones).
+- "milky": inner core colour "#rrggbb" (a pale tint or cream).
+- "coreInset": 0.1 to 0.2.
+- "parts": 6 to 22 solid pieces that blend smoothly together. Each is {"s":"ellipsoid","c":[x,y,z],"r":[rx,ry,rz]} or {"s":"capsule","a":[x,y,z],"b":[x,y,z],"r0":n,"r1":n} (a tapered tube: legs, tails, necks, fins, trunks, horns, antennae) or {"s":"box","c":[x,y,z],"r":[hx,hy,hz]} (a rounded block, half sizes). Optional on any part: "k" blend smoothness 0.05 to 0.4 (larger = gooier join), "sub":true to carve a dent or mouth out of the body, "mirror":true to duplicate across z (list the z>0 side; use for eyes, ears, arms, legs, wings, flippers).
+- "marks": up to 8 small inclusions seen through the jelly, {"c":[x,y,z],"r":0.05 (or [rx,ry,rz]),"color":"#rrggbb","mirror":true}: eyes, nose, spots. Put each about 80% of the way out to the surface so it shows through.
+- "puff": {"c":[x,y,z],"r":n}, the soft belly, cheek or throat region that swells when the user presses Puff.
+- "glow": {"count":24,"color":"#rrggbb","c":[x,y,z],"spread":[sx,sy,sz]}, a swarm of tiny beads drifting inside the body that glow when the lights go out. c is a spot well inside the body, spread is how far they roam. Pick a colour that suits the subject.
+- "bubbles": 0 to 30 trapped air bubbles.
+
+Rules: every radius or thickness is at least 0.1 (thin fins and ears at least 0.12). Make everything chubby, rounded and toy-like, with exaggerated plumpness. Keep the silhouette recognisable: a few big masses plus clearly separated appendages. Parts must overlap or touch so the result is one connected body. Never add text or logos.
+
+Example recipe (a blue whale):
+`;
+
+function buildPrompt(instr, prev) {
+  let p = SYSTEM + JSON.stringify(WHALE) + '\n\n';
+  if (prev) p += 'CURRENT RECIPE (to be edited):\n' + JSON.stringify(prev) + '\n\nThe user wants this change: ' + (instr || 'make it a little more charming') + '\nReturn the full updated recipe. Change only what was asked and keep everything else as it is.';
+  else p += 'The user\'s request: ' + (instr ? instr : 'Turn the subject of the picture into a jelly.') + (img.blob ? '\nBuild the recipe from the attached picture and apply the request to it.' : '\nThere is no picture: build the subject from the words.');
+  return p;
+}
+function parseRecipe(text) {
+  const a = text.indexOf('{'), b = text.lastIndexOf('}'); if (a < 0 || b <= a) throw new Error('Claude가 설계도를 돌려주지 않았습니다.');
+  return JSON.parse(text.slice(a, b + 1));
+}
+let controller = null;
+async function askClaude(prompt, blob) {
+  const sample = window.claude && await window.claude.use('sample');
+  if (!sample) { const e = new Error('unavailable'); e.code = 'unavailable'; throw e; }
+  const opts = { cache: false, modelTier: 'default', signal: controller.signal };
+  if (blob) { try { const lim = await sample.limits(); if (lim && lim.images) opts.images = [blob]; } catch (e) { } }
+  const res = await sample(prompt, opts); return res.text;
+}
+
+const img = { blob: null, url: null, fresh: false };
+async function prepImage(file) {
+  const bmp = await createImageBitmap(file); const s = Math.min(1, 896 / Math.max(bmp.width, bmp.height));
+  const c = document.createElement('canvas'); c.width = Math.round(bmp.width * s); c.height = Math.round(bmp.height * s);
+  c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+  const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.86));
+  if (img.url) URL.revokeObjectURL(img.url);
+  img.blob = blob; img.url = URL.createObjectURL(blob); img.fresh = true;
+  $('#thumb').src = img.url; $('#drop').classList.add('has');
+}
+async function onFile(f) { if (!f || !/^image\//.test(f.type)) { say('이미지 파일을 선택해 주세요.', true); return; } try { await prepImage(f); say(''); } catch (e) { say('이 이미지를 읽을 수 없습니다.', true); } }
+$('#file').onchange = e => onFile(e.target.files[0]);
+$('#drop').onclick = () => $('#file').click();
+$('#drop').onkeydown = e => { if (e.key === 'Enter') $('#file').click(); };
+$('#clearImg').onclick = e => { e.stopPropagation(); img.blob = null; img.fresh = false; $('#drop').classList.remove('has'); $('#file').value = ''; };
+['dragenter', 'dragover'].forEach(t => addEventListener(t, e => { e.preventDefault(); $('#drop').classList.add('over'); }));
+['dragleave', 'drop'].forEach(t => addEventListener(t, e => { e.preventDefault(); $('#drop').classList.remove('over'); }));
+addEventListener('drop', e => { const f = e.dataTransfer && e.dataTransfer.files[0]; if (f) onFile(f); });
+
+function showSpec() { $('#specOut').textContent = JSON.stringify(spec, null, 1); }
+function useRecipe(r) {
+  spec = r; build(r); showSpec();
+}
+async function makeJelly() {
+  const instr = $('#instr').value.trim();
+  if (!img.blob && !instr && !spec) { say('사진을 올리거나 원하는 모습을 적어 주세요.', true); return; }
+  controller = new AbortController(); busy(true); say('');
+  try {
+    const refine = !!spec && !img.fresh;
+    const text = await askClaude(buildPrompt(instr, refine ? spec : null), img.blob);
+    let r; try { r = parseRecipe(text); } catch (e) { throw new Error('Claude의 답을 읽지 못했습니다. 한 번 더 시도해 주세요.'); }
+    busy(true, '소프트바디 생성 중…'); await new Promise(r => setTimeout(r, 30));
+    useRecipe(r); img.fresh = false; say('완성! 잡아 보고, 부풀려 보고, 불을 꺼 보세요.');
+    if (!window.__hintShown) { window.__hintShown = true; }
+  } catch (e) {
+    if (e && e.code === 'unavailable') say('여기서는 Claude에 연결할 수 없어 데모 젤리만 쓸 수 있습니다. Claude에 로그인한 상태로 열면 내 사진을 쓸 수 있어요.', true);
+    else if (e && (e.code === 'not_granted')) say('Claude 사용 권한이 허용되지 않았습니다.', true);
+    else if (e && e.code === 'rate_limited') say('Claude가 지금 바쁩니다. 잠시 후 다시 시도해 주세요.', true);
+    else if (e && e.name === 'AbortError') say('취소했습니다.');
+    else say((e && e.message) || '문제가 생겼습니다. 다시 시도해 주세요.', true);
+  } finally { busy(false); }
+}
+$('#bMake').onclick = makeJelly;
+$('#instr').addEventListener('keydown', e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) makeJelly(); });
+$('#demoWhale').onclick = () => { useRecipe(JSON.parse(JSON.stringify(WHALE))); say(''); };
+$('#demoBear').onclick = () => { useRecipe(JSON.parse(JSON.stringify(BEAR))); say(''); };
+$('#copySpec').onclick = async () => { try { await navigator.clipboard.writeText(JSON.stringify(spec)); $('#copySpec').textContent = '복사됨'; setTimeout(() => $('#copySpec').textContent = '설계도 복사', 1400); } catch (e) { } };
+$('#firmV').textContent = (+$('#firm').value).toFixed(2); $('#dampV').textContent = (+$('#damp').value).toFixed(2);
+
+try { useRecipe(JSON.parse(JSON.stringify(WHALE))); } catch (e) { console.error(e); say('데모를 만들지 못했습니다: ' + e.message, true); }
+resize(); requestAnimationFrame(frame);
+
+</script>
+</body>
+</html>
