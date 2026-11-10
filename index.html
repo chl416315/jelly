@@ -77,17 +77,36 @@ pre{margin:8px 0 0;max-height:150px;overflow:auto;font:9px/1.35 var(--mono);colo
 body.busy #stage canvas{filter:saturate(.8) blur(.6px);transition:filter .4s}
 #fallback{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);text-align:center;padding:30px;font-family:var(--serif);font-style:italic;font-size:20px;z-index:9}
 #fallback[hidden]{display:none}
+.quick{display:none}
 @media (max-width:860px){
-  html,body{height:auto;overflow-x:hidden;overflow-y:auto}
-  #app{position:relative;display:flex;flex-direction:column;min-height:100vh}
-  #stage{position:relative;inset:auto;height:62vh;min-height:340px;flex:none}
-  .mast{left:16px;top:14px;max-width:62%}
-  h1{font-size:44px}.mast p{display:none}
-  .pill{right:12px;top:12px}
-  .panel{position:static;width:auto;max-height:none;margin:0 14px 16px;order:3}
-  .foot{position:static;order:2;max-width:none;margin:8px 14px 12px;pointer-events:auto}
+  :root{--sh:max(52vh,300px)}
+  @supports (height:1dvh){:root{--sh:max(52dvh,300px)}}
+  html,body{height:auto;overflow-x:hidden;overflow-y:auto;font-size:13px}
+  body{overflow-y:auto}
+  #app{position:relative;display:flex;flex-direction:column;min-height:100vh;padding-top:var(--sh)}
+  #stage{position:fixed;top:0;left:0;right:0;bottom:auto;inset:0 0 auto 0;height:var(--sh);z-index:1;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  .mast{position:fixed;left:14px;top:10px;max-width:60%;z-index:2}
+  h1{font-size:34px;margin:6px 0 0}.mast p,.mast .kicker{display:none}
+  .pill{position:fixed;right:10px;top:10px}
+  .quick{display:flex;position:fixed;left:10px;right:10px;top:calc(var(--sh) - 54px);gap:8px;z-index:3}
+  .quick button{flex:1;min-height:42px;font-size:13px;border-radius:99px;background:var(--panel);backdrop-filter:blur(10px)}
+  .panel{position:static;width:auto;max-height:none;margin:10px 12px 18px;order:3;padding:14px;z-index:2}
+  .panel{display:flex;flex-direction:column;overflow:visible}
+  .panel>.sec{order:1}
+  .panel>.sec:nth-child(2){border-top:0;padding-top:0}
+  .panel>details{order:2}
+  .panel>.sec:first-child{order:3;border-top:1px solid var(--line);padding-top:12px;margin-top:4px}
+  .foot{position:static;order:2;max-width:none;margin:8px 14px 0;pointer-events:auto}
   .handle{display:none}
-  .reads{flex-wrap:wrap}.reads div{padding-right:12px;margin-right:12px}
+  .reads{flex-wrap:wrap}.reads div{padding-right:12px;margin-right:12px}.reads b{font-size:16px}
+  #drop{height:110px}
+  textarea{font-size:16px;min-height:72px}
+  button{min-height:40px;font-size:13px;padding:8px 14px}
+  .make{min-height:48px;font-size:15px}
+  .sw{width:calc(25% - 6px);min-height:54px}
+  .sws{gap:8px}
+  .chk{font-size:13px;min-height:36px}
+  input[type=range]{height:32px}
 }
 </style>
 </head>
@@ -101,6 +120,7 @@ body.busy #stage canvas{filter:saturate(.8) blur(.6px);transition:filter .4s}
   </header>
   <div class="pill"><i id="pillDot"></i><span id="pillText">THREE.JS · 실행 중</span></div>
 
+  <div class="quick"><button id="qPuff" type="button">부풀리기</button><button id="qHop" type="button">점프</button><button id="qLights" type="button">불 끄기</button><button id="qReset" type="button">초기화</button></div>
   <aside class="panel">
     <div class="sec">
       <div class="head">표본 <b>fig. 59</b></div>
@@ -905,6 +925,8 @@ function resize() {
 }
 new ResizeObserver(resize).observe(stage); addEventListener('resize', resize);
 renderer.domElement.addEventListener('dblclick', e => { if (!grab) goHome(); });
+let lastTap = 0, tapX = 0, tapY = 0;
+renderer.domElement.addEventListener('pointerup', e => { if (e.pointerType !== 'touch') return; const n = performance.now(); if (n - lastTap < 320 && Math.hypot(e.clientX - tapX, e.clientY - tapY) < 24 && !grab) goHome(); lastTap = n; tapX = e.clientX; tapY = e.clientY; });
 
 /* ---------- sync physics -> render ---------- */
 const _n = new THREE.Vector3();
@@ -944,8 +966,9 @@ function sync() {
 function doGulp() { if (!cur) return; gulp = { phase: 'fill', t: 0 }; cur.soft.kick(0.5, 1.4, 0); }
 function doHop() { if (!cur) return; cur.soft.kick(1.4, 3.3, 0); }
 function doReset() { if (!cur) return; cur.soft.reset(); gulp = { phase: 'idle', t: 0 }; sync(); }
-function setDark(v) { dark = v; $('#bLights').textContent = dark ? '불 켜기' : '불 끄기'; $('#bLights').classList.toggle('on', dark); document.body.classList.toggle('dark', dark); }
+function setDark(v) { dark = v; $('#bLights').textContent = $('#qLights').textContent = dark ? '불 켜기' : '불 끄기'; $('#qLights').classList.toggle('on', dark); $('#bLights').classList.toggle('on', dark); document.body.classList.toggle('dark', dark); }
 function setPaused(v) { paused = v; $('#bPause').textContent = paused ? '다시 재생' : '일시정지'; $('#bPause').classList.toggle('on', paused); }
+$('#qPuff').onclick = doGulp; $('#qHop').onclick = doHop; $('#qReset').onclick = doReset; $('#qLights').onclick = () => setDark(!dark);
 $('#bGulp').onclick = doGulp; $('#bHop').onclick = doHop; $('#bReset').onclick = doReset;
 $('#bPause').onclick = () => setPaused(!paused); $('#bLights').onclick = () => setDark(!dark);
 $('#qSpeed').onchange = e => { speed = e.target.checked ? 0.25 : 1; };
@@ -1115,7 +1138,6 @@ $('#clearImg').onclick = e => { e.stopPropagation(); img.blob = null; img.fresh 
 ['dragleave', 'drop'].forEach(t => addEventListener(t, e => { e.preventDefault(); $('#drop').classList.remove('over'); }));
 addEventListener('drop', e => { const f = e.dataTransfer && e.dataTransfer.files[0]; if (f) onFile(f); });
 
-  
 function showSpec() { $('#specOut').textContent = JSON.stringify(spec, null, 1); }
 function useRecipe(r) {
   spec = r; build(r); showSpec();
