@@ -1115,6 +1115,7 @@ $('#clearImg').onclick = e => { e.stopPropagation(); img.blob = null; img.fresh 
 ['dragleave', 'drop'].forEach(t => addEventListener(t, e => { e.preventDefault(); $('#drop').classList.remove('over'); }));
 addEventListener('drop', e => { const f = e.dataTransfer && e.dataTransfer.files[0]; if (f) onFile(f); });
 
+  
 function showSpec() { $('#specOut').textContent = JSON.stringify(spec, null, 1); }
 function useRecipe(r) {
   spec = r; build(r); showSpec();
