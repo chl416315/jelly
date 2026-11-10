@@ -909,10 +909,10 @@ function fitCamera(snap) {
   const aspect = Math.max(0.3, (w - panel) / h); const vf = camera.fov * Math.PI / 180;
   const hf = 2 * Math.atan(Math.tan(vf / 2) * aspect);
   const R = 0.5 * Math.hypot(sz[0], sz[1] * 1.25, sz[2]) * 0.95;
-  const dist = R / Math.sin(Math.min(vf, hf) / 2) * 0.9;
+  const dist = R / Math.sin(Math.min(vf, hf) / 2) * (isDesk() ? 1.12 : 1.45);
   cur.home = { dist, target: new THREE.Vector3(0, sz[1] * 0.42, 0) };
   if (snap) goHome();
-  controls.minDistance = dist * 0.35; controls.maxDistance = dist * 2.2;
+  controls.minDistance = dist * 0.3; controls.maxDistance = dist * 3.2;
 }
 function goHome() {
   if (!cur) return; const { dist, target } = cur.home; const el = 0.36, az = 0.62;
