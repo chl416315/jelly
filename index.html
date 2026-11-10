@@ -154,7 +154,7 @@ body.busy #stage canvas{filter:saturate(.8) blur(.6px);transition:filter .4s}
       <div class="row" style="margin-top:0">
         <button id="bGulp" type="button">부풀리기</button><button id="bHop" type="button">점프</button><button id="bReset" type="button">초기화</button>
       </div>
-      <div class="row"><label class="chk"><input id="qSpeed" type="checkbox">¼ 속도</label><label class="chk"><input id="qMesh" type="checkbox">메시 보기</label></div>
+      <div class="row"><label class="chk"><input id="qSpeed" type="checkbox">¼ 속도</label><label class="chk"><input id="qMesh" type="checkbox">메시 보기</label><label class="chk"><input id="qSound" type="checkbox" checked>효과음</label></div>
       <div class="row"><button id="bPause" type="button">일시정지</button><button id="bLights" type="button">불 끄기</button></div>
     </div>
     <details>
@@ -555,7 +555,9 @@ function createSoft(sdf, bmin, bmax, h, puff, maxCells = 1e9) {
   soft.reset = () => { pos.set(p0); prev.set(p0); vel.fill(0); curInf = -1; soft.setInflate(0); soft.grab = null; };
   soft.kick = (vx, vy, vz) => { for (let i = 0; i < N; i++) { vel[i * 3] += vx; vel[i * 3 + 1] += vy; vel[i * 3 + 2] += vz; } };
 
+  soft.impact = 0;
   soft.step = function (dt) {
+    soft.impact = 0;
     const n = soft.sub, ds = dt / n, inv2 = 1 / (ds * ds);
     const aE = Math.pow(10, -5.0 - 1.8 * soft.params.firm) * inv2;
     const qv = 0.9 - 0.85 * soft.params.firm;
@@ -593,6 +595,7 @@ function createSoft(sdf, bmin, bmax, h, puff, maxCells = 1e9) {
       for (let i = 0; i < N; i++) {
         const o = i * 3;
         if (pos[o + 1] < 0) {
+          if (-vel[o + 1] > soft.impact) soft.impact = -vel[o + 1];
           pos[o + 1] = 0; hits++;
           pos[o] = prev[o] + (pos[o] - prev[o]) * 0.35; pos[o + 2] = prev[o + 2] + (pos[o + 2] - prev[o + 2]) * 0.35;
         }
@@ -1021,6 +1024,35 @@ function endGrab(e) {
 el.addEventListener('pointerup', endGrab); el.addEventListener('pointercancel', endGrab);
 el.addEventListener('wheel', e => { if (grab) { e.preventDefault(); e.stopImmediatePropagation(); grab.twist += e.deltaY * 0.004; } }, { passive: false, capture: true });
 
+
+/* ---------- sound: synthesised jelly thud ---------- */
+let actx = null, sfxOn = true, lastSfx = 0, noiseBuf = null;
+function unlockAudio() { try { if (!actx) { const AC = window.AudioContext || window.webkitAudioContext; if (AC) actx = new AC(); } if (actx && actx.state === 'suspended') actx.resume(); } catch (e) { } }
+['pointerdown', 'keydown', 'touchend', 'click'].forEach(t => addEventListener(t, unlockAudio, { passive: true }));
+function thud(v) {
+  if (!sfxOn || !actx || actx.state !== 'running') return;
+  const t = actx.currentTime, k = Math.min(1, v / 7), out = actx.createGain(); out.gain.value = 0.9;
+  const lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(900 + 500 * k, t); lp.frequency.exponentialRampToValueAtTime(260, t + 0.45); lp.Q.value = 0.7;
+  out.connect(lp).connect(actx.destination);
+  // squish: soft body that sags in pitch, with a slow jelly wobble (tremolo)
+  const o = actx.createOscillator(), g = actx.createGain(); o.type = 'sine';
+  o.frequency.setValueAtTime(230 + 60 * (1 - k), t); o.frequency.exponentialRampToValueAtTime(78, t + 0.38);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.08 + 0.42 * k, t + 0.025); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.55);
+  const lfo = actx.createOscillator(), lg = actx.createGain(); lfo.frequency.value = 13; lg.gain.setValueAtTime(0.18 + 0.2 * k, t); lg.gain.exponentialRampToValueAtTime(0.0005, t + 0.5);
+  lfo.connect(lg).connect(g.gain);
+  o.connect(g).connect(out); o.start(t); o.stop(t + 0.58); lfo.start(t); lfo.stop(t + 0.58);
+  // bloop: gentle rising "뽀잉" after the squish
+  const o2 = actx.createOscillator(), g2 = actx.createGain(); o2.type = 'sine';
+  o2.frequency.setValueAtTime(170, t + 0.05); o2.frequency.exponentialRampToValueAtTime(340 + 80 * k, t + 0.2);
+  g2.gain.setValueAtTime(0.0001, t + 0.05); g2.gain.exponentialRampToValueAtTime(0.05 + 0.16 * k, t + 0.09); g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+  o2.connect(g2).connect(out); o2.start(t + 0.05); o2.stop(t + 0.32);
+  // very soft wet contact, heavily low-passed
+  if (!noiseBuf) { noiseBuf = actx.createBuffer(1, Math.floor(actx.sampleRate * 0.12), actx.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2); }
+  const n = actx.createBufferSource(), nl = actx.createBiquadFilter(), gn = actx.createGain(); n.buffer = noiseBuf; nl.type = 'lowpass'; nl.frequency.value = 420;
+  gn.gain.value = 0.04 + 0.14 * k; n.connect(nl).connect(gn).connect(out); n.start(t);
+}
+$('#qSound').onchange = e => { sfxOn = e.target.checked; unlockAudio(); };
+
 /* ---------- readouts ---------- */
 const ro = { mass: $('#rMass'), vol: $('#rVol'), len: $('#rLen'), beads: $('#rBeads') };
 function readouts(force) {
@@ -1041,7 +1073,7 @@ function frame(now) {
   if (cur) {
     const soft = cur.soft;
     if (!paused) {
-      acc += dt * speed; let n = 0;
+      acc += dt * speed; let n = 0; let hitMax = 0;
       while (acc >= 1 / 60 && n < 3) {
         // gulp envelope: fill fast, hold, then slowly strain out
         if (gulp.phase !== 'idle') {
@@ -1052,11 +1084,12 @@ function frame(now) {
           else { a -= 0.0042 + a * 0.004; if (a <= 0.002) { a = 0; gulp.phase = 'idle'; } }
           soft.setInflate(a);
         }
-        const t0 = performance.now(); soft.step(1 / 60); const ms = performance.now() - t0;
+        const t0 = performance.now(); soft.step(1 / 60); const ms = performance.now() - t0; if (soft.impact > hitMax) hitMax = soft.impact;
         pms += (ms - pms) * 0.08; if (pms > 8.5 && soft.sub > 4) { soft.sub--; pms = 6; } else if (pms < 3.2 && soft.sub < 10) { soft.sub++; pms = 5; }
         acc -= 1 / 60; n++;
       }
       if (n === 3) acc = 0;
+      if (hitMax > 0.9 && now - lastSfx > 130) { thud(hitMax); lastSfx = now; }
       if (cur.beads) cur.beads.t += dt * speed * (2.2 + 4 * soft.inflate);
     }
     sync();
